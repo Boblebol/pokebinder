@@ -1,0 +1,22 @@
+export const PDEX = {
+  1:[{g:'R/B',t:'Une plante mystérieuse pousse sur son dos. Elle absorbe les rayons solaires pour le fortifier.'},{g:'Or',t:'Sa graine libère un doux parfum qui apaise les esprits.'}],
+  4:[{g:'R/B',t:'La flamme de sa queue reflète sa santé. Elle vacille quand il est faible.'},{g:'Cristal',t:'Si la flamme s\'éteint, c\'est la fin pour ce Pokémon.'}],
+  6:[{g:'R/B',t:'Il vole à 1 400 km/h. Sa flamme peut fondre n\'importe quelle roche.'},{g:'Jaune',t:'Il ne daigne pas brûler un adversaire plus faible.'}],
+  25:[{g:'Jaune',t:'Ses joues contiennent des organes électrogènes. Elles brillent dans l\'obscurité.'},{g:'Or',t:'Leurs éclairs combinés peuvent illuminer une montagne.'}],
+  94:[{g:'R/B',t:'Né d\'un esprit malveillant. Sa main translucide traverse tout.'}],
+  130:[{g:'R/B',t:'Pacifique, il se déchaîne si on le provoque. Sa furie n\'a aucune fin.'}],
+  150:[{g:'R/B',t:'Né d\'une manipulation génétique. Sa nature sauvage le rend dangereux.'},{g:'Cristal',t:'Sa puissance psychique surpasse tous les Pokémon.'}],
+  151:[{g:'Cristal',t:'Son ADN renfermerait les gènes de tous les Pokémon. Extrêmement rare.'}],
+  152:[{g:'Or/Argent',t:'La feuille sur sa tête dégage une odeur apaisante qui calme même les esprits les plus agités.'}],
+  155:[{g:'Or/Argent',t:'Il se love en boule et ses flammes internes le protègent. Elles s\'allument quand il est prêt à attaquer.'}],
+  158:[{g:'Or/Argent',t:'Il peut broyer des crocs de 30 cm. Il attaque en secouant sa gueule de droite à gauche avec force.'}],
+  249:[{g:'Or',t:'En déployant ses ailes, il déclenche des tempêtes. Gardien légendaire des profondeurs océaniques.'},{g:'Argent',t:'Ce Pokémon légendaire gouverne toutes les mers du monde depuis les fonds marins les plus profonds.'}],
+  250:[{g:'Or',t:'Ce Pokémon de feu légendaire surgit dans le ciel après des siècles de sommeil. Il préside aux éclairs.'},{g:'Argent',t:'On dit qu\'il n\'apparaît que devant un cœur pur. Son plumage rayonne de toutes les couleurs de l\'arc-en-ciel.'}],
+  251:[{g:'Cristal',t:'Ce Pokémon mythique peut voyager dans le temps. Il est dit qu\'il protège la forêt ancestrale.'}],
+  252:[{g:'Rubis/Saphir',t:'Ses pieds caoutchouteux lui permettent de grimper aux arbres avec une aisance déconcertante.'}],
+  255:[{g:'Rubis/Saphir',t:'Quand il est en confiance, des flammes apparaissent sur son corps. Elles disparaissent s\'il est surpris.'}],
+  258:[{g:'Rubis/Saphir',t:'Sa patte est assez puissante pour briser des rochers. Sur terre, il est maladroit mais redoutable.'}],
+  282:[{g:'Rubis/Saphir',t:'Ce Pokémon peut ressentir les émotions de son dresseur. Il se bat farouchement pour le protéger.'}],
+  384:[{g:'Émeraude',t:'Il vole dans la stratosphère à une altitude si élevée qu\'on ne le voit presque jamais depuis le sol.'}],
+  385:[{g:'Émeraude',t:'Pokémon des étoiles filantes. On dit qu\'il exauce les vœux de ceux qui dorment en le tenant.'}]
+};
