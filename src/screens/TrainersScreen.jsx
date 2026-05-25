@@ -3,6 +3,20 @@ import PkImg from '../components/PkImg.jsx';
 import { TRAINERS, ACHIEVEMENTS, PKM, TYPE_COLORS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
+const REGION_CFG = {
+  kanto: { l: '🔴 Kanto' },
+  johto: { l: '⭐ Johto' },
+  gs: { l: '🌟 Johto (GSC)' },
+  rs: { l: '💚 Hoenn' },
+  dp: { l: '❄️ Sinnoh' },
+  bw: { l: '⛰️ Unys' },
+  b2w2: { l: '🏢 Unys 2' },
+  xy: { l: '⚜️ Kalos' },
+  sm: { l: '☀️ Alola' },
+  swsh: { l: '🛡️ Galar' },
+  sv: { l: '🍊 Paldea' }
+};
+
 export default function TrainersScreen({ col, theme }) {
   const [sel, setSel] = useState(null);
   const [rTab, setRTab] = useState('kanto');
@@ -22,9 +36,7 @@ export default function TrainersScreen({ col, theme }) {
   const tb = visTrnrs.filter(t => t.badge).length;
 
   const RTABS = [
-    { id: 'kanto', l: '🔴 Kanto' },
-    { id: 'johto', l: '⭐ Johto' },
-    { id: 'hoenn', l: '💚 Hoenn' },
+    ...Object.entries(REGION_CFG).map(([id, cfg]) => ({ id, l: cfg.l })),
     { id: 'global', l: '🌍 Tout' }
   ];
 

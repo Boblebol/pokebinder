@@ -431,6 +431,31 @@ def import_data(
     with open("src/data/regions.js", "w", encoding="utf-8") as f:
         f.write(regions_code)
 
+    # --- 1.1 Generate gamePokedexes.js ---
+    typer.echo("Generating src/data/gamePokedexes.js...")
+    gp = bundle_data.get("game_pokedexes", {})
+    gp_pokedexes = gp.get("pokedexes", [])
+    gp_apps = gp.get("appearances_by_slug", {})
+    
+    pokedex_pokemon = {p["id"]: [] for p in gp_pokedexes}
+    for slug, p_dex_ids in gp_apps.items():
+        pid = slug_to_id.get(slug)
+        if pid is not None:
+            for dex_id in p_dex_ids:
+                if dex_id in pokedex_pokemon:
+                    pokedex_pokemon[dex_id].append(pid)
+                    
+    game_dex_code = "export const GAME_POKEDEXES = [\n"
+    for p in gp_pokedexes:
+        dex_id = p["id"]
+        label_fr = p["label_fr"].replace("'", "\\'")
+        region = p["region"].replace("'", "\\'")
+        pids = sorted(list(set(pokedex_pokemon.get(dex_id, []))))
+        game_dex_code += f"  {{ id: '{dex_id}', label_fr: '{label_fr}', region: '{region}', pokemon: {pids} }},\n"
+    game_dex_code = game_dex_code.rstrip(",\n") + "\n];\n"
+    with open("src/data/gamePokedexes.js", "w", encoding="utf-8") as f:
+        f.write(game_dex_code)
+
     # --- 2. Generate pokemon.js ---
     typer.echo("Generating src/data/pokemon.js...")
     pokemon_list = deduplicate_pokemon(bundle.pokedex.pokemon)
