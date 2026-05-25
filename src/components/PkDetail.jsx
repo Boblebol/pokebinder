@@ -453,10 +453,10 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
                       style={{
                         textAlign: 'center',
                         flexShrink: 0,
-                        background: isc ? hexToRgba(tc, 0.18) : 'transparent',
+                        background: isc ? hexToRgba(currentTc, 0.18) : 'transparent',
                         borderRadius: 8,
                         padding: '4px 8px',
-                        border: isc ? `1px solid ${hexToRgba(tc, 0.38)}` : '1px solid transparent',
+                        border: isc ? `1px solid ${hexToRgba(currentTc, 0.38)}` : '1px solid transparent',
                         minWidth: 58,
                         opacity: isc ? 1 : 0.65
                       }}
