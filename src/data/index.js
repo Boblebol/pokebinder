@@ -9,6 +9,8 @@ export { PDEX } from './pokedexEntries.js';
 export { TRAINERS } from './trainers.js';
 export { ACHIEVEMENTS } from './achievements.js';
 export { TYPE_COLORS, TYPE_LABELS, TYPE_WEAKNESSES, STATUS_CONFIG } from './types.js';
+export { POKEMON_FORMS } from './pokemonForms.js';
+
 
 // Build the evolution lookup map
 export const evoMap = {};

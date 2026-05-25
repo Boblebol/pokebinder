@@ -10,7 +10,8 @@ import {
   PDEX,
   STATS,
   TRAINERS,
-  PKM
+  PKM,
+  POKEMON_FORMS
 } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
@@ -23,10 +24,12 @@ function getWeak(types) {
 export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, getLoc }) {
   const [ei, setEi] = useState(0);
   const [apiData, setApiData] = useState(null);
+  const [selectedForm, setSelectedForm] = useState(null);
 
   useEffect(() => {
     setApiData(null);
     setEi(0);
+    setSelectedForm(null);
     let dead = false;
     
     Promise.all([
@@ -58,13 +61,17 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
   }, [p.id]);
 
   const loc = getLoc(p.id);
-  const weak = getWeak(p.types);
   const chain = p.evoChain || [p.id];
   const entries = PDEX[p.id] || (apiData?.entries) || [{ g: 'Pokédex', t: apiData === null ? 'Chargement…' : 'Aucune donnée.' }];
   const rel = TRAINERS.filter(t => t.team.includes(p.id));
-  const tc = TYPE_COLORS[p.types[0]] || '#888888';
   const st = STATS[p.id];
   const sc = STATUS_CONFIG[status] || STATUS_CONFIG[null];
+
+  const currentName = selectedForm ? selectedForm.name : p.name;
+  const currentTypes = selectedForm ? selectedForm.types : p.types;
+  const currentWeak = selectedForm ? getWeak(selectedForm.types) : getWeak(p.types);
+  const currentImage = selectedForm ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedForm.poke_id}.png` : null;
+  const currentTc = TYPE_COLORS[currentTypes[0]] || '#888888';
 
   const cycleStatus = () => {
     const next = !status ? 'en main' : status === 'en main' ? 'rangé' : null;
@@ -137,7 +144,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
         WebkitOverflowScrolling: 'touch'
       }}>
         <div style={{
-          background: `linear-gradient(180deg, ${hexToRgba(tc, 0.28)}, transparent 60%)`,
+          background: `linear-gradient(180deg, ${hexToRgba(currentTc, 0.28)}, transparent 60%)`,
           paddingTop: 68
         }}>
           <div style={{ height: 46 }} />
@@ -145,14 +152,15 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
             <PkImg
               p={p}
               sz={170}
-              xs={{ filter: `drop-shadow(0 14px 36px ${hexToRgba(tc, 0.65)})` }}
+              imgUrl={currentImage}
+              xs={{ filter: `drop-shadow(0 14px 36px ${hexToRgba(currentTc, 0.65)})` }}
             />
           </div>
           <div style={{ textAlign: 'center', paddingBottom: 14 }}>
             <div style={{
               fontFamily: "'Press Start 2P', monospace",
               fontSize: 8,
-              color: tc,
+              color: currentTc,
               marginBottom: 6
             }}>
               No. {String(p.id).padStart(3, '0')}
@@ -163,7 +171,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
               color: '#fff',
               letterSpacing: -.5
             }}>
-              {p.name}
+              {currentName}
             </div>
             {apiData?.h != null && (
               <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 5 }}>
@@ -177,7 +185,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
               </div>
             )}
             <div style={{ display: 'flex', gap: 7, justifyContent: 'center', marginTop: 8 }}>
-              {p.types.map(t => (
+              {currentTypes.map(t => (
                 <TBadge key={t} type={t} />
               ))}
             </div>
@@ -275,8 +283,8 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
           <Card>
             <Lbl>Faiblesses</Lbl>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {weak.length ? (
-                weak.map(w => <TBadge key={w} type={w} />)
+              {currentWeak.length ? (
+                currentWeak.map(w => <TBadge key={w} type={w} />)
               ) : (
                 <span style={{ color: 'rgba(255,255,255,.28)', fontSize: 12 }}>
                   Aucune
@@ -284,6 +292,90 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
               )}
             </div>
           </Card>
+
+          {/* Formes Spéciales */}
+          {POKEMON_FORMS[p.id] && POKEMON_FORMS[p.id].length > 0 && (
+            <Card>
+              <Lbl>Formes alternatives</Lbl>
+              <div style={{
+                display: 'flex',
+                gap: 8,
+                overflowX: 'auto',
+                paddingBottom: 4,
+                WebkitOverflowScrolling: 'touch'
+              }}>
+                {/* Base Form button */}
+                <button
+                  onClick={() => setSelectedForm(null)}
+                  style={{
+                    flexShrink: 0,
+                    width: 90,
+                    padding: '8px',
+                    borderRadius: 8,
+                    border: selectedForm === null ? `2px solid ${TYPE_COLORS[p.types[0]] || '#888888'}` : '1px solid rgba(255,255,255,.12)',
+                    background: selectedForm === null ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.15)',
+                    color: selectedForm === null ? '#fff' : 'rgba(255,255,255,.50)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 4,
+                    transition: 'all 0.15s',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  <img
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png`}
+                    alt="Normal"
+                    style={{ width: 42, height: 42, objectFit: 'contain' }}
+                  />
+                  <span style={{ fontSize: 9, fontWeight: 600, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
+                    Normal
+                  </span>
+                </button>
+
+                {/* Other Forms */}
+                {POKEMON_FORMS[p.id].map(form => {
+                  const isActive = selectedForm?.poke_id === form.poke_id;
+                  const formTc = TYPE_COLORS[form.types[0]] || '#888888';
+                  return (
+                    <button
+                      key={form.poke_id}
+                      onClick={() => setSelectedForm(form)}
+                      style={{
+                        flexShrink: 0,
+                        width: 90,
+                        padding: '8px',
+                        borderRadius: 8,
+                        border: isActive ? `2px solid ${formTc}` : '1px solid rgba(255,255,255,.12)',
+                        background: isActive ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.15)',
+                        color: isActive ? '#fff' : 'rgba(255,255,255,.50)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 4,
+                        transition: 'all 0.15s',
+                        fontFamily: 'inherit'
+                      }}
+                    >
+                      <img
+                        src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${form.poke_id}.png`}
+                        alt={form.name}
+                        style={{ width: 42, height: 42, objectFit: 'contain' }}
+                        onError={(e) => {
+                          e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png`;
+                        }}
+                      />
+                      <span style={{ fontSize: 9, fontWeight: 600, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
+                        {form.name.replace(p.name, '').trim() || 'Alternative'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
 
           {/* Base Stats */}
           {st && (

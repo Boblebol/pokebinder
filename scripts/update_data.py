@@ -2,6 +2,8 @@
 # dependencies = [
 #   "typer",
 #   "pydantic>=2.0",
+#   "httpx",
+#   "tqdm",
 # ]
 # ///
 
@@ -9,9 +11,11 @@ import os
 import re
 import ast
 import json
+import asyncio
 from typing import List, Dict, Optional, Union
 import typer
 from pydantic import BaseModel, Field
+import httpx
 
 app = typer.Typer(help="PokéClasseur Data Update CLI")
 
@@ -308,10 +312,80 @@ def load_existing_js(file_path: str, var_name: str):
             return f'"{m.group(2)}":'
             
         raw_val = re.sub(pattern, replacer, raw_val)
-        return ast.literal_eval(raw_val)
+        parsed = ast.literal_eval(raw_val)
+        if isinstance(parsed, dict):
+            return {int(k) if str(k).isdigit() else k: v for k, v in parsed.items()}
+        return parsed
     except Exception as e:
         typer.echo(f"Warning: could not parse existing JS variable {var_name} from {file_path}: {e}")
         return None
+
+
+BASE_KEYWORDS = [
+    "-normal-forme",
+    "-normal-form",
+    "-type-normal",
+    "-confined",
+    "-altered-forme",
+    "-land-forme",
+    "-standard-mode",
+    "-spring-form",
+    "-incarnate-forme",
+    "-aria-forme",
+    "-natural-form",
+    "-male",
+    "-shield-forme",
+    "-medium-variety",
+    "-50-forme",
+    "-baile-style",
+    "-midday-form",
+    "-solo-form",
+    "-meteor-form",
+    "-disguised-form",
+    "-amped-form",
+    "-phony-form",
+    "-ice-face",
+    "-full-belly-mode",
+    "-hero-of-many-battles",
+    "-single-strike-style",
+    "-family-of-four",
+    "-green-plumage",
+    "-zero-form",
+    "-curly-form",
+    "-two-segment-form",
+    "-chest-form",
+    "-apex-build",
+    "-ultimate-mode",
+    "-counterfeit-form",
+    "-unremarkable-form",
+    "-teal-mask",
+    "-normal-mode",
+]
+
+def get_pokemon_sort_key(p):
+    slug = p.slug.lower()
+    if "mega" in slug or "gigantamax" in slug or "gmax" in slug:
+        form_priority = 9999
+    else:
+        form_priority = 999
+        for idx, keyword in enumerate(BASE_KEYWORDS):
+            if keyword in slug:
+                form_priority = idx
+                break
+    return (form_priority, len(slug), slug)
+
+def deduplicate_pokemon(pokemon_entries):
+    from collections import defaultdict
+    grouped = defaultdict(list)
+    for p in pokemon_entries:
+        grouped[int(p.number)].append(p)
+        
+    deduped = []
+    for pid in sorted(grouped.keys()):
+        list_p = grouped[pid]
+        list_p.sort(key=get_pokemon_sort_key)
+        deduped.append(list_p[0])
+    return deduped
 
 
 # --- Typer CLI Commands ---
@@ -340,11 +414,8 @@ def import_data(
     typer.echo("Data successfully validated!")
 
     # 1. Map slugs to National Dex ID
-    # Note: we filter for base forms (form is null/None) to map IDs
-    slug_to_id = {}
-    for p in bundle.pokedex.pokemon:
-        if p.form is None:
-            slug_to_id[p.slug] = int(p.number)
+    # Note: we map all variant slugs to their base ID to robustly support evolution chain resolution
+    slug_to_id = {p.slug: int(p.number) for p in bundle.pokedex.pokemon}
 
     # Load existing objects to preserve values
     existing_stats = load_existing_js("src/data/stats.js", "STATS") or {}
@@ -362,7 +433,7 @@ def import_data(
 
     # --- 2. Generate pokemon.js ---
     typer.echo("Generating src/data/pokemon.js...")
-    pokemon_list = [p for p in bundle.pokedex.pokemon if p.form is None]
+    pokemon_list = deduplicate_pokemon(bundle.pokedex.pokemon)
     pokemon_list.sort(key=lambda x: int(x.number))
 
     pokemon_code = "export const POKEMON_RAW = [\n"
@@ -632,6 +703,256 @@ def status():
     typer.echo(f"Stats populated: {len(stats)} / {len(pokemon)} Pokémon")
     typer.echo(f"Pokedex entries: {len(pdex)} / {len(pokemon)} Pokémon")
     typer.echo(f"Trainers count: {len(trainers)}")
+
+
+def clean_variety_word(w: str) -> str:
+    w = w.lower()
+    if w == "gmax": return "gigantamax"
+    if w == "hisuian": return "hisui"
+    if w == "alolan": return "alola"
+    if w == "galarian": return "galar"
+    if w == "paldean": return "paldea"
+    return w
+
+def normalize_variety_name(s: str) -> set:
+    return {clean_variety_word(w) for w in re.findall(r'[a-zA-Z0-9]+', s.lower())}
+
+def match_variety_entry(variety_name: str, bundle_entries: list) -> Optional[dict]:
+    variety_words = normalize_variety_name(variety_name)
+    best_entry = None
+    best_score = 0
+    for entry in bundle_entries:
+        slug_words = normalize_variety_name(entry.get("slug", ""))
+        overlap = len(variety_words & slug_words)
+        if overlap > best_score:
+            best_score = overlap
+            best_entry = entry
+    return best_entry
+
+
+async def fetch_pokemon_data(client: httpx.AsyncClient, pid: int, fetch_stats: bool, fetch_desc: bool, sem: asyncio.Semaphore):
+    async with sem:
+        stats = None
+        descriptions = []
+        varieties_list = []
+        
+        # 1. Fetch stats if requested
+        if fetch_stats:
+            url = f"https://pokeapi.co/api/v2/pokemon/{pid}/"
+            for attempt in range(3):
+                try:
+                    res = await client.get(url, timeout=10.0)
+                    if res.status_code == 200:
+                        data = res.json()
+                        # Extract the 6 base stats
+                        stats_list = [0] * 6
+                        name_to_index = {
+                            "hp": 0,
+                            "attack": 1,
+                            "defense": 2,
+                            "special-attack": 3,
+                            "special-defense": 4,
+                            "speed": 5
+                        }
+                        for s in data.get("stats", []):
+                            stat_name = s["stat"]["name"]
+                            if stat_name in name_to_index:
+                                stats_list[name_to_index[stat_name]] = s["base_stat"]
+                        stats = stats_list
+                        break
+                    elif res.status_code == 404:
+                        break
+                except Exception:
+                    await asyncio.sleep(2 ** attempt)
+        
+        # 2. Fetch descriptions and varieties if requested
+        if fetch_desc:
+            url = f"https://pokeapi.co/api/v2/pokemon-species/{pid}/"
+            for attempt in range(3):
+                try:
+                    res = await client.get(url, timeout=10.0)
+                    if res.status_code == 200:
+                        data = res.json()
+                        desc_list = []
+                        seen_texts = set()
+                        for entry in data.get("flavor_text_entries", []):
+                            if entry.get("language", {}).get("name") == "fr":
+                                raw_text = entry.get("flavor_text", "")
+                                clean_text = raw_text.replace("\n", " ").replace("\r", "").strip()
+                                clean_text = re.sub(r"\s+", " ", clean_text)
+                                if clean_text and clean_text not in seen_texts:
+                                    seen_texts.add(clean_text)
+                                    version_name = entry.get("version", {}).get("name", "")
+                                    v_name = VERSION_MAP.get(version_name, version_name.replace("-", " ").title())
+                                    desc_list.append({"g": v_name, "t": clean_text})
+                        descriptions = desc_list[:2]
+                        
+                        # Extract varieties
+                        varieties = data.get("varieties", [])
+                        for v in varieties:
+                            if not v.get("is_default", False):
+                                v_name = v["pokemon"]["name"]
+                                v_url = v["pokemon"]["url"]
+                                poke_id_match = re.search(r"/pokemon/(\d+)/", v_url)
+                                if poke_id_match:
+                                    poke_id = int(poke_id_match.group(1))
+                                    varieties_list.append({"name": v_name, "poke_id": poke_id})
+                        break
+                    elif res.status_code == 404:
+                        break
+                except Exception:
+                    await asyncio.sleep(2 ** attempt)
+                    
+        return pid, stats, descriptions, varieties_list
+
+
+async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, limit: Optional[int]):
+    from collections import defaultdict
+    pokemon_raw = load_existing_js("src/data/pokemon.js", "POKEMON_RAW")
+    if not pokemon_raw:
+        typer.echo("Error: src/data/pokemon.js not found or couldn't be parsed.")
+        raise typer.Exit(1)
+        
+    pokemon_ids = [item[0] for item in pokemon_raw]
+    if limit:
+        pokemon_ids = pokemon_ids[:limit]
+        
+    existing_stats = load_existing_js("src/data/stats.js", "STATS") or {}
+    existing_pdex = load_existing_js("src/data/pokedexEntries.js", "PDEX") or {}
+    existing_forms = load_existing_js("src/data/pokemonForms.js", "POKEMON_FORMS") or {}
+    
+    needs_forms = not existing_forms or len(existing_forms) < 100
+    
+    stats_targets = []
+    desc_targets = []
+    
+    for pid in pokemon_ids:
+        pstats = existing_stats.get(pid, [60, 60, 60, 60, 60, 60])
+        if all_stats or pstats == [60, 60, 60, 60, 60, 60]:
+            stats_targets.append(pid)
+            
+        pdesc = existing_pdex.get(pid, [])
+        if all_desc or not pdesc or (needs_forms and pid not in existing_forms):
+            desc_targets.append(pid)
+            
+    all_targets = sorted(list(set(stats_targets) | set(desc_targets)))
+    
+    if not all_targets:
+        typer.echo("All stats, descriptions, and forms are already up to date! Nothing to scrape.")
+        return
+        
+    typer.echo(f"Found {len(pokemon_ids)} total Pokémon in database.")
+    typer.echo(f"Need to fetch stats for: {len(stats_targets)} Pokémon.")
+    typer.echo(f"Need to fetch descriptions/forms for: {len(desc_targets)} Pokémon.")
+    typer.echo(f"Querying PokéAPI for {len(all_targets)} Pokémon (concurrency={concurrency})...")
+    
+    bundle_by_id = defaultdict(list)
+    bundle_path = "file_imports/pokevault_bundle.json"
+    if os.path.exists(bundle_path):
+        try:
+            with open(bundle_path, "r", encoding="utf-8") as f:
+                bundle_data = json.load(f)
+            for p in bundle_data.get("pokedex", {}).get("pokemon", []):
+                bundle_by_id[int(p["number"])].append(p)
+        except Exception as e:
+            typer.echo(f"Warning: could not load bundle for variety matching: {e}")
+            
+    sem = asyncio.Semaphore(concurrency)
+    
+    async with httpx.AsyncClient() as client:
+        tasks = []
+        for pid in all_targets:
+            fetch_stats = pid in stats_targets
+            fetch_desc = pid in desc_targets
+            tasks.append(fetch_pokemon_data(client, pid, fetch_stats, fetch_desc, sem))
+            
+        from tqdm.asyncio import tqdm
+        results = []
+        for f in tqdm.as_completed(tasks, desc="Scraping PokéAPI"):
+            pid, stats, descriptions, varieties = await f
+            results.append((pid, stats, descriptions, varieties))
+            
+    stats_updated = 0
+    desc_updated = 0
+    forms_updated = 0
+    
+    for pid, stats, descriptions, varieties in results:
+        if stats is not None:
+            existing_stats[pid] = stats
+            stats_updated += 1
+        if descriptions:
+            existing_pdex[pid] = descriptions
+            desc_updated += 1
+        if varieties:
+            forms_list = []
+            bundle_entries = bundle_by_id.get(pid, [])
+            for var in varieties:
+                matched_entry = match_variety_entry(var["name"], bundle_entries)
+                if matched_entry:
+                    form_name = matched_entry.get("names", {}).get("fr") or matched_entry.get("names", {}).get("en") or var["name"]
+                    form_types = [TYPE_MAP.get(t, "normal") for t in matched_entry.get("types", [])]
+                else:
+                    form_name = var["name"].replace("-", " ").title()
+                    form_types = ["normal"]
+                forms_list.append({
+                    "poke_id": var["poke_id"],
+                    "name": form_name,
+                    "types": form_types
+                })
+            if forms_list:
+                existing_forms[pid] = forms_list
+                forms_updated += 1
+            
+    if stats_updated > 0 or all_stats:
+        typer.echo("Writing updated src/data/stats.js...")
+        full_pokemon_ids = [item[0] for item in pokemon_raw]
+        max_id = max(full_pokemon_ids)
+        stats_code = "export const STATS = {\n"
+        for pid in range(1, max_id + 1):
+            pstats = existing_stats.get(pid, [60, 60, 60, 60, 60, 60])
+            stats_code += f"  {pid}: {list(pstats)},\n"
+        stats_code = stats_code.rstrip(",\n") + "\n};\n"
+        with open("src/data/stats.js", "w", encoding="utf-8") as f:
+            f.write(stats_code)
+            
+    if desc_updated > 0 or all_desc:
+        typer.echo("Writing updated src/data/pokedexEntries.js...")
+        pokedex_code = "export const PDEX = {\n"
+        for pid in sorted(existing_pdex.keys()):
+            entries = existing_pdex[pid]
+            if entries:
+                entries_json = json.dumps(entries, ensure_ascii=False)
+                pokedex_code += f"  {pid}: {entries_json},\n"
+        pokedex_code = pokedex_code.rstrip(",\n") + "\n};\n"
+        with open("src/data/pokedexEntries.js", "w", encoding="utf-8") as f:
+            f.write(pokedex_code)
+            
+    if forms_updated > 0 or not os.path.exists("src/data/pokemonForms.js"):
+        typer.echo("Writing updated src/data/pokemonForms.js...")
+        forms_code = "export const POKEMON_FORMS = {\n"
+        for pid in sorted(existing_forms.keys()):
+            forms_list = existing_forms[pid]
+            if forms_list:
+                forms_json = json.dumps(forms_list, ensure_ascii=False)
+                forms_code += f"  {pid}: {forms_json},\n"
+        forms_code = forms_code.rstrip(",\n") + "\n};\n"
+        with open("src/data/pokemonForms.js", "w", encoding="utf-8") as f:
+            f.write(forms_code)
+            
+    typer.echo(f"\nScraping complete! Updated {stats_updated} stats, {desc_updated} descriptions, and {forms_updated} forms.")
+
+
+@app.command()
+def scrape_api(
+    all_stats: bool = typer.Option(False, "--all-stats", help="Fetch stats for all Pokémon, overriding existing ones"),
+    all_desc: bool = typer.Option(False, "--all-desc", help="Fetch descriptions for all Pokémon, overriding existing ones"),
+    concurrency: int = typer.Option(5, "--concurrency", help="Number of concurrent requests to PokéAPI"),
+    limit: Optional[int] = typer.Option(None, "--limit", help="Limit the number of Pokémon to scrape (useful for testing)")
+):
+    """
+    Scrape missing base stats, French Pokédex descriptions, and specific forms from PokéAPI (pokeapi.co).
+    """
+    asyncio.run(scrape_api_async(all_stats, all_desc, concurrency, limit))
 
 
 if __name__ == "__main__":

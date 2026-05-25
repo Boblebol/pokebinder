@@ -26,3 +26,8 @@ dist-ssr
 # Raw import data
 file_imports/
 
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/

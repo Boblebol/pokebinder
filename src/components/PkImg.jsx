@@ -1,18 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TYPE_COLORS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
-export default function PkImg({ p, sz, xs }) {
+export default function PkImg({ p, sz, xs, imgUrl }) {
   const [err, setErr] = useState(false);
   const tc = TYPE_COLORS[p.types[0]] || '#888888';
   const s = sz || 64;
   const pad = String(p.id).padStart(3, '0');
 
+  useEffect(() => {
+    setErr(false);
+  }, [p.id, imgUrl]);
+
+  const src = imgUrl || `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${pad}.png`;
+
   if (!err) {
     return (
       <div style={{ width: s, height: s, flexShrink: 0, ...(xs || {}) }}>
         <img
-          src={`https://assets.pokemon.com/assets/cms2/img/pokedex/full/${pad}.png`}
+          key={src}
+          src={src}
           alt={p.name}
           loading="lazy"
           decoding="async"

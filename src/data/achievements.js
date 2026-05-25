@@ -19,12 +19,12 @@ export const ACHIEVEMENTS = [
     check: (col) => TRAINERS.filter(t => t.region === 'johto' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
   },
   {
-    id: 'champ-bw',
-    label: 'Champion de Bw',
+    id: 'champ-b2w2',
+    label: 'Champion de B2w2',
     icon: '🏆',
     color: '#888888',
-    desc: 'Décroche tous les badges de Bw.',
-    check: (col) => TRAINERS.filter(t => t.region === 'bw' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+    desc: 'Décroche tous les badges de B2w2.',
+    check: (col) => TRAINERS.filter(t => t.region === 'b2w2' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
   },
   {
     id: 'champ-sv',
@@ -35,44 +35,12 @@ export const ACHIEVEMENTS = [
     check: (col) => TRAINERS.filter(t => t.region === 'sv' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
   },
   {
-    id: 'champ-rs',
-    label: 'Champion de Rs',
-    icon: '🏆',
-    color: '#888888',
-    desc: 'Décroche tous les badges de Rs.',
-    check: (col) => TRAINERS.filter(t => t.region === 'rs' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
-  },
-  {
-    id: 'champ-dp',
-    label: 'Champion de Dp',
-    icon: '🏆',
-    color: '#888888',
-    desc: 'Décroche tous les badges de Dp.',
-    check: (col) => TRAINERS.filter(t => t.region === 'dp' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
-  },
-  {
     id: 'champ-gs',
     label: 'Champion de Gs',
     icon: '🏆',
     color: '#888888',
     desc: 'Décroche tous les badges de Gs.',
     check: (col) => TRAINERS.filter(t => t.region === 'gs' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
-  },
-  {
-    id: 'champ-sm',
-    label: 'Champion de Sm',
-    icon: '🏆',
-    color: '#888888',
-    desc: 'Décroche tous les badges de Sm.',
-    check: (col) => TRAINERS.filter(t => t.region === 'sm' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
-  },
-  {
-    id: 'champ-swsh',
-    label: 'Champion de Swsh',
-    icon: '🏆',
-    color: '#888888',
-    desc: 'Décroche tous les badges de Swsh.',
-    check: (col) => TRAINERS.filter(t => t.region === 'swsh' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
   },
   {
     id: 'champ-xy',
@@ -83,12 +51,44 @@ export const ACHIEVEMENTS = [
     check: (col) => TRAINERS.filter(t => t.region === 'xy' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
   },
   {
-    id: 'champ-b2w2',
-    label: 'Champion de B2w2',
+    id: 'champ-rs',
+    label: 'Champion de Rs',
     icon: '🏆',
     color: '#888888',
-    desc: 'Décroche tous les badges de B2w2.',
-    check: (col) => TRAINERS.filter(t => t.region === 'b2w2' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+    desc: 'Décroche tous les badges de Rs.',
+    check: (col) => TRAINERS.filter(t => t.region === 'rs' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+  },
+  {
+    id: 'champ-sm',
+    label: 'Champion de Sm',
+    icon: '🏆',
+    color: '#888888',
+    desc: 'Décroche tous les badges de Sm.',
+    check: (col) => TRAINERS.filter(t => t.region === 'sm' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+  },
+  {
+    id: 'champ-bw',
+    label: 'Champion de Bw',
+    icon: '🏆',
+    color: '#888888',
+    desc: 'Décroche tous les badges de Bw.',
+    check: (col) => TRAINERS.filter(t => t.region === 'bw' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+  },
+  {
+    id: 'champ-dp',
+    label: 'Champion de Dp',
+    icon: '🏆',
+    color: '#888888',
+    desc: 'Décroche tous les badges de Dp.',
+    check: (col) => TRAINERS.filter(t => t.region === 'dp' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+  },
+  {
+    id: 'champ-swsh',
+    label: 'Champion de Swsh',
+    icon: '🏆',
+    color: '#888888',
+    desc: 'Décroche tous les badges de Swsh.',
+    check: (col) => TRAINERS.filter(t => t.region === 'swsh' && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
   },
   {
     id: 'grand-maitre',
@@ -96,7 +96,7 @@ export const ACHIEVEMENTS = [
     icon: '👑',
     color: '#ffd700',
     desc: 'Champion de toutes les régions.',
-    check: (col) => ['kanto', 'johto', 'bw', 'sv', 'rs', 'dp', 'gs', 'sm', 'swsh', 'xy', 'b2w2'].every(r => TRAINERS.filter(t => t.region === r && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main')))
+    check: (col) => ['kanto', 'johto', 'b2w2', 'sv', 'gs', 'xy', 'rs', 'sm', 'bw', 'dp', 'swsh'].every(r => TRAINERS.filter(t => t.region === r && t.badge).every(t => t.team.every(id => col[id] === 'rangé' || col[id] === 'en main')))
   },
   {
     id: 'dresseur-ultime',
