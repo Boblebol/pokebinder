@@ -64,6 +64,17 @@ TYPE_COLORS = {
 }
 
 VERSION_MAP = {
+    "red": "Rouge",
+    "blue": "Bleu",
+    "yellow": "Jaune",
+    "gold": "Or",
+    "silver": "Argent",
+    "crystal": "Cristal",
+    "ruby": "Rubis",
+    "sapphire": "Saphir",
+    "emerald": "Émeraude",
+    "firered": "Rouge Feu",
+    "leafgreen": "Vert Feuille",
     "black": "Noir",
     "white": "Blanc",
     "x": "X",
