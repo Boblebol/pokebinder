@@ -2,8 +2,9 @@ import React from 'react';
 import { TYPE_COLORS, TYPE_LABELS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
-export default function TBadge({ type }) {
+export default function TBadge({ type, mult }) {
   const c = TYPE_COLORS[type] || '#888888';
+  const suffix = mult !== undefined ? ` \u00d7${mult}` : '';
   return (
     <span style={{
       background: hexToRgba(c, 0.18),
@@ -18,7 +19,7 @@ export default function TBadge({ type }) {
       lineHeight: 1.6,
       whiteSpace: 'nowrap'
     }}>
-      {TYPE_LABELS[type] || type}
+      {TYPE_LABELS[type] || type}{suffix}
     </span>
   );
 }

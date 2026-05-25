@@ -46,6 +46,7 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
         col={col}
         onBack={() => setSel(null)}
         onSet={(s) => setCol(c => ({ ...c, [sel.id]: s }))}
+        onNavigate={(nextP) => setSel(nextP)}
         theme={theme}
         getLoc={getLoc}
       />

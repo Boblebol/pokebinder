@@ -730,14 +730,16 @@ def match_variety_entry(variety_name: str, bundle_entries: list) -> Optional[dic
     return best_entry
 
 
-async def fetch_pokemon_data(client: httpx.AsyncClient, pid: int, fetch_stats: bool, fetch_desc: bool, sem: asyncio.Semaphore):
+async def fetch_pokemon_data(client: httpx.AsyncClient, pid: int, fetch_stats: bool, fetch_desc: bool, fetch_details: bool, sem: asyncio.Semaphore):
     async with sem:
         stats = None
+        height = None
+        weight = None
         descriptions = []
         varieties_list = []
         
-        # 1. Fetch stats if requested
-        if fetch_stats:
+        # 1. Fetch stats and details if requested
+        if fetch_stats or fetch_details:
             url = f"https://pokeapi.co/api/v2/pokemon/{pid}/"
             for attempt in range(3):
                 try:
@@ -759,6 +761,8 @@ async def fetch_pokemon_data(client: httpx.AsyncClient, pid: int, fetch_stats: b
                             if stat_name in name_to_index:
                                 stats_list[name_to_index[stat_name]] = s["base_stat"]
                         stats = stats_list
+                        height = data.get("height")
+                        weight = data.get("weight")
                         break
                     elif res.status_code == 404:
                         break
@@ -796,14 +800,48 @@ async def fetch_pokemon_data(client: httpx.AsyncClient, pid: int, fetch_stats: b
                                 poke_id_match = re.search(r"/pokemon/(\d+)/", v_url)
                                 if poke_id_match:
                                     poke_id = int(poke_id_match.group(1))
-                                    varieties_list.append({"name": v_name, "poke_id": poke_id})
+                                    # Query the stats of this variety
+                                    var_stats = None
+                                    var_height = None
+                                    var_weight = None
+                                    for v_attempt in range(3):
+                                        try:
+                                            v_res = await client.get(v_url, timeout=10.0)
+                                            if v_res.status_code == 200:
+                                                v_data = v_res.json()
+                                                stats_list = [0] * 6
+                                                name_to_index = {
+                                                    "hp": 0,
+                                                    "attack": 1,
+                                                    "defense": 2,
+                                                    "special-attack": 3,
+                                                    "special-defense": 4,
+                                                    "speed": 5
+                                                }
+                                                for s in v_data.get("stats", []):
+                                                    stat_name = s["stat"]["name"]
+                                                    if stat_name in name_to_index:
+                                                        stats_list[name_to_index[stat_name]] = s["base_stat"]
+                                                var_stats = stats_list
+                                                var_height = v_data.get("height")
+                                                var_weight = v_data.get("weight")
+                                                break
+                                        except Exception:
+                                            await asyncio.sleep(1)
+                                    varieties_list.append({
+                                        "name": v_name,
+                                        "poke_id": poke_id,
+                                        "stats": var_stats,
+                                        "height": var_height,
+                                        "weight": var_weight
+                                    })
                         break
                     elif res.status_code == 404:
                         break
                 except Exception:
                     await asyncio.sleep(2 ** attempt)
                     
-        return pid, stats, descriptions, varieties_list
+        return pid, stats, height, weight, descriptions, varieties_list
 
 
 async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, limit: Optional[int]):
@@ -820,28 +858,41 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
     existing_stats = load_existing_js("src/data/stats.js", "STATS") or {}
     existing_pdex = load_existing_js("src/data/pokedexEntries.js", "PDEX") or {}
     existing_forms = load_existing_js("src/data/pokemonForms.js", "POKEMON_FORMS") or {}
+    existing_details = load_existing_js("src/data/pokemonDetails.js", "PKM_DETAILS") or {}
     
     needs_forms = not existing_forms or len(existing_forms) < 100
     
     stats_targets = []
     desc_targets = []
+    details_targets = []
     
     for pid in pokemon_ids:
+        if pid not in existing_details:
+            details_targets.append(pid)
+            
         pstats = existing_stats.get(pid, [60, 60, 60, 60, 60, 60])
         if all_stats or pstats == [60, 60, 60, 60, 60, 60]:
             stats_targets.append(pid)
             
         pdesc = existing_pdex.get(pid, [])
-        if all_desc or not pdesc or (needs_forms and pid not in existing_forms):
+        forms = existing_forms.get(pid, [])
+        has_incomplete_forms = False
+        if forms:
+            has_incomplete_forms = any(
+                f.get("stats") is None or f.get("height") is None or f.get("weight") is None
+                for f in forms
+            )
+        if all_desc or not pdesc or (needs_forms and pid not in existing_forms) or has_incomplete_forms:
             desc_targets.append(pid)
             
-    all_targets = sorted(list(set(stats_targets) | set(desc_targets)))
+    all_targets = sorted(list(set(stats_targets) | set(desc_targets) | set(details_targets)))
     
     if not all_targets:
-        typer.echo("All stats, descriptions, and forms are already up to date! Nothing to scrape.")
+        typer.echo("All stats, descriptions, details, and forms are already up to date! Nothing to scrape.")
         return
         
     typer.echo(f"Found {len(pokemon_ids)} total Pokémon in database.")
+    typer.echo(f"Need to fetch details for: {len(details_targets)} Pokémon.")
     typer.echo(f"Need to fetch stats for: {len(stats_targets)} Pokémon.")
     typer.echo(f"Need to fetch descriptions/forms for: {len(desc_targets)} Pokémon.")
     typer.echo(f"Querying PokéAPI for {len(all_targets)} Pokémon (concurrency={concurrency})...")
@@ -864,22 +915,27 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
         for pid in all_targets:
             fetch_stats = pid in stats_targets
             fetch_desc = pid in desc_targets
-            tasks.append(fetch_pokemon_data(client, pid, fetch_stats, fetch_desc, sem))
+            fetch_details = pid in details_targets
+            tasks.append(fetch_pokemon_data(client, pid, fetch_stats, fetch_desc, fetch_details, sem))
             
         from tqdm.asyncio import tqdm
         results = []
         for f in tqdm.as_completed(tasks, desc="Scraping PokéAPI"):
-            pid, stats, descriptions, varieties = await f
-            results.append((pid, stats, descriptions, varieties))
+            pid, stats, height, weight, descriptions, varieties = await f
+            results.append((pid, stats, height, weight, descriptions, varieties))
             
     stats_updated = 0
+    details_updated = 0
     desc_updated = 0
     forms_updated = 0
     
-    for pid, stats, descriptions, varieties in results:
+    for pid, stats, height, weight, descriptions, varieties in results:
         if stats is not None:
             existing_stats[pid] = stats
             stats_updated += 1
+        if height is not None and weight is not None:
+            existing_details[pid] = {"h": height, "w": weight}
+            details_updated += 1
         if descriptions:
             existing_pdex[pid] = descriptions
             desc_updated += 1
@@ -897,7 +953,10 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
                 forms_list.append({
                     "poke_id": var["poke_id"],
                     "name": form_name,
-                    "types": form_types
+                    "types": form_types,
+                    "stats": var.get("stats"),
+                    "height": var.get("height"),
+                    "weight": var.get("weight")
                 })
             if forms_list:
                 existing_forms[pid] = forms_list
@@ -915,6 +974,16 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
         with open("src/data/stats.js", "w", encoding="utf-8") as f:
             f.write(stats_code)
             
+    if details_updated > 0 or not os.path.exists("src/data/pokemonDetails.js"):
+        typer.echo("Writing updated src/data/pokemonDetails.js...")
+        details_code = "export const PKM_DETAILS = {\n"
+        for pid in sorted(existing_details.keys()):
+            h_w = existing_details[pid]
+            details_code += f"  {pid}: {{ h: {h_w['h']}, w: {h_w['w']} }},\n"
+        details_code = details_code.rstrip(",\n") + "\n};\n"
+        with open("src/data/pokemonDetails.js", "w", encoding="utf-8") as f:
+            f.write(details_code)
+
     if desc_updated > 0 or all_desc:
         typer.echo("Writing updated src/data/pokedexEntries.js...")
         pokedex_code = "export const PDEX = {\n"

@@ -281,85 +281,106 @@ export default function TrainersScreen({ col, theme }) {
           </div>
         </div>
       ) : (
-        <div style={{ flex: '1 1 0%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '8px 14px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {ACHIEVEMENTS.map(ach => {
-            const isOk = ach.check(col);
-            const cl = ach.color;
-            const deps = ach.id === 'grand-maitre' ? ACHIEVEMENTS.filter(a => a.id.startsWith('champ-')) : [];
+        <div style={{ flex: '1 1 0%', overflowY: 'auto', WebkitOverflowScrolling: 'touch', padding: '8px 14px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, alignContent: 'start' }}>
+            {ACHIEVEMENTS.map(ach => {
+              const isOk = ach.check(col);
+              const cl = ach.color;
+              const deps = ach.id === 'grand-maitre' ? ACHIEVEMENTS.filter(a => a.id.startsWith('champ-')) : [];
 
-            return (
-              <div key={ach.id} style={{
-                background: 'rgba(255,255,255,.05)',
-                borderRadius: 14,
-                overflow: 'hidden',
-                border: `1px solid ${isOk ? hexToRgba(cl, 0.38) : 'rgba(255,255,255,.08)'}`,
-                padding: '14px 16px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: deps.length ? 12 : 0 }}>
-                  <div style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: '50%',
-                    background: isOk ? hexToRgba(cl, 0.18) : 'rgba(255,255,255,.07)',
-                    border: `2px solid ${isOk ? hexToRgba(cl, 0.45) : 'rgba(255,255,255,.15)'}`,
+              return (
+                <div
+                  key={ach.id}
+                  style={{
+                    background: 'rgba(255,255,255,.05)',
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                    border: `1px solid ${isOk ? hexToRgba(cl, 0.38) : 'rgba(255,255,255,.08)'}`,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 22,
-                    flexShrink: 0
-                  }}>
-                    {isOk ? ach.icon : '🔒'}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: isOk ? cl : 'rgba(255,255,255,.75)', marginBottom: 3 }}>
+                    flexDirection: 'column'
+                  }}
+                >
+                  <div style={{ height: 3, background: isOk ? cl : 'rgba(255,255,255,.08)' }} />
+                  <div style={{ padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                      <div style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        background: isOk ? hexToRgba(cl, 0.18) : 'rgba(255,255,255,.07)',
+                        border: `2px solid ${isOk ? hexToRgba(cl, 0.45) : 'rgba(255,255,255,.12)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 20
+                      }}>
+                        {isOk ? ach.icon : '🔒'}
+                      </div>
+                      {isOk ? (
+                        <div style={{
+                          fontSize: 9,
+                          color: cl,
+                          fontWeight: 700,
+                          background: hexToRgba(cl, 0.12),
+                          borderRadius: 6,
+                          padding: '3px 7px',
+                          border: `1px solid ${hexToRgba(cl, 0.25)}`
+                        }}>
+                          Obtenu
+                        </div>
+                      ) : (
+                        <div style={{
+                          fontSize: 9,
+                          color: 'rgba(255,255,255,.25)',
+                          fontWeight: 700,
+                          background: 'rgba(255,255,255,.04)',
+                          borderRadius: 6,
+                          padding: '3px 7px',
+                          border: '1px solid rgba(255,255,255,.08)'
+                        }}>
+                          Bloqu\u00e9
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
                       {ach.label}
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,.35)', lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.38)', lineHeight: 1.4, flex: 1, marginBottom: deps.length ? 10 : 0 }}>
                       {ach.desc}
                     </div>
-                  </div>
-                  {isOk && (
-                    <div style={{
-                      fontSize: 10,
-                      color: cl,
-                      fontWeight: 700,
-                      background: hexToRgba(cl, 0.12),
-                      borderRadius: 6,
-                      padding: '3px 8px',
-                      flexShrink: 0,
-                      border: `1px solid ${hexToRgba(cl, 0.25)}`
-                    }}>
-                      ✓ Obtenu
-                    </div>
-                  )}
-                </div>
 
-                {deps.length > 0 && (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {deps.map(dep => {
-                      const dok = dep.check(col);
-                      const dc = dep.color;
-                      return (
-                        <div key={dep.id} style={{
-                          flex: 1,
-                          padding: '8px 10px',
-                          borderRadius: 8,
-                          background: dok ? hexToRgba(dc, 0.1) : 'rgba(255,255,255,.04)',
-                          border: `1px solid ${dok ? hexToRgba(dc, 0.28) : 'rgba(255,255,255,.08)'}`,
-                          textAlign: 'center'
-                        }}>
-                          <div style={{ fontSize: 18, marginBottom: 3 }}>{dok ? dep.icon : '🔒'}</div>
-                          <div style={{ fontSize: 9, fontWeight: 700, color: dok ? dc : 'rgba(255,255,255,.28)', lineHeight: 1.3 }}>
-                            {dep.label.replace('Champion de ', '')}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {deps.length > 0 && (
+                      <div style={{ display: 'flex', gap: 4, marginTop: 'auto', flexWrap: 'wrap' }}>
+                        {deps.map(dep => {
+                          const dok = dep.check(col);
+                          const dc = dep.color;
+                          return (
+                            <div
+                              key={dep.id}
+                              title={dep.label}
+                              style={{
+                                flex: 1,
+                                minWidth: 30,
+                                padding: '6px 4px',
+                                borderRadius: 6,
+                                background: dok ? hexToRgba(dc, 0.1) : 'rgba(255,255,255,.04)',
+                                border: `1px solid ${dok ? hexToRgba(dc, 0.28) : 'rgba(255,255,255,.08)'}`,
+                                textAlign: 'center',
+                                fontSize: 13
+                              }}
+                            >
+                              {dok ? dep.icon : '🔒'}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

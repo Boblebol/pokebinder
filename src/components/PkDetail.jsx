@@ -6,76 +6,92 @@ import Lbl from './Lbl.jsx';
 import {
   STATUS_CONFIG,
   TYPE_COLORS,
-  TYPE_WEAKNESSES,
+  TYPE_LABELS,
   PDEX,
   STATS,
   TRAINERS,
   PKM,
-  POKEMON_FORMS
+  POKEMON_FORMS,
+  getTypeEffectiveness,
+  PKM_DETAILS
 } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
-function getWeak(types) {
-  const w = new Set();
-  types.forEach(t => (TYPE_WEAKNESSES[t] || []).forEach(x => w.add(x)));
-  return [...w];
+function getFormDescription(p, form) {
+  const name = form.name;
+  const typesStr = form.types.map(t => TYPE_LABELS[t] || t).join('/');
+  
+  if (name.includes('M\u00e9ga-') || name.includes(' Mega')) {
+    return `Sous l'effet de la M\u00e9ga-\u00c9volution, ${name} voit sa puissance d\u00e9cupl\u00e9e. Son type devient ${typesStr} et ses statistiques de combat sont consid\u00e9rablement am\u00e9lior\u00e9es.`;
+  }
+  if (name.includes('Gigamax')) {
+    return `Sous sa forme Gigamax, ${name} atteint une taille gigantesque sous l'influence de l'\u00e9nergie Dynamax. Ses capacit\u00e9s de type principal se transforment en redoutables attaques G-Max.`;
+  }
+  if (name.includes("Forme d'Alola")) {
+    return `Vari\u00e9t\u00e9 de ${p.name} adapt\u00e9e \u00e0 l'archipel d'Alola. Pour survivre dans ce nouvel environnement, ce Pok\u00e9mon a \u00e9volu\u00e9 pour devenir de type ${typesStr}.`;
+  }
+  if (name.includes("Forme de Galar")) {
+    return `Vari\u00e9t\u00e9 de ${p.name} propre \u00e0 la r\u00e9gion de Galar. Son apparence et son comportement ont chang\u00e9, et son type est d\u00e9sormais ${typesStr}.`;
+  }
+  if (name.includes("Forme de Hisui")) {
+    return `Forme ancienne de ${p.name} que l'on trouvait jadis dans la r\u00e9gion de Hisui. Adapt\u00e9 aux rudes conditions de cette \u00e9poque, son type est ${typesStr}.`;
+  }
+  if (name.includes("Forme de Paldea")) {
+    return `Vari\u00e9t\u00e9 de ${p.name} que l'on trouve dans la r\u00e9gion de Paldea. Son mode de vie unique dans cette r\u00e9gion lui conf\u00e8re le type ${typesStr}.`;
+  }
+  if (name.includes("Forme Originelle")) {
+    return `Forme originelle et v\u00e9ritable de ${p.name}, r\u00e9v\u00e9lant sa puissance divine dans sa dimension natale. Son type est ${typesStr}.`;
+  }
+  
+  return `Forme alternative de ${p.name} de type ${typesStr}.`;
 }
 
-export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, getLoc }) {
+export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigate, theme, getLoc }) {
   const [ei, setEi] = useState(0);
-  const [apiData, setApiData] = useState(null);
   const [selectedForm, setSelectedForm] = useState(null);
 
   useEffect(() => {
-    setApiData(null);
     setEi(0);
     setSelectedForm(null);
-    let dead = false;
-    
-    Promise.all([
-      fetch(`https://pokeapi.co/api/v2/pokemon-species/${p.id}/`).then(r => r.json()).catch(() => null),
-      fetch(`https://pokeapi.co/api/v2/pokemon/${p.id}/`).then(r => r.json()).catch(() => null)
-    ]).then(([sp, pk]) => {
-      if (dead) return;
-      const seen = new Set();
-      const ents = [];
-      (sp?.flavor_text_entries || []).forEach(x => {
-        if (x.language.name === 'fr' && !seen.has(x.version.name)) {
-          seen.add(x.version.name);
-          ents.push({
-            g: x.version.name,
-            t: x.flavor_text.replace(/[\f\n]/g, ' ')
-          });
-        }
-      });
-      setApiData({
-        entries: ents.length ? ents : null,
-        h: pk?.height ?? null,
-        w: pk?.weight ?? null
-      });
-    });
-
-    return () => {
-      dead = true;
-    };
   }, [p.id]);
 
   const loc = getLoc(p.id);
   const chain = p.evoChain || [p.id];
-  const entries = PDEX[p.id] || (apiData?.entries) || [{ g: 'Pokédex', t: apiData === null ? 'Chargement…' : 'Aucune donnée.' }];
   const rel = TRAINERS.filter(t => t.team.includes(p.id));
-  const st = STATS[p.id];
+  const st = selectedForm && selectedForm.stats ? selectedForm.stats : STATS[p.id];
   const sc = STATUS_CONFIG[status] || STATUS_CONFIG[null];
 
   const currentName = selectedForm ? selectedForm.name : p.name;
   const currentTypes = selectedForm ? selectedForm.types : p.types;
-  const currentWeak = selectedForm ? getWeak(selectedForm.types) : getWeak(p.types);
+  
+  const eff = getTypeEffectiveness(currentTypes);
+  const currentWeak = eff.weaknesses.sort((a, b) => b.mult - a.mult);
+  const currentResist = eff.resistances.sort((a, b) => a.mult - b.mult);
+
   const currentImage = selectedForm ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedForm.poke_id}.png` : null;
   const currentTc = TYPE_COLORS[currentTypes[0]] || '#888888';
+
+  const currentHeight = selectedForm && selectedForm.height !== undefined ? selectedForm.height : PKM_DETAILS[p.id]?.h;
+  const currentWeight = selectedForm && selectedForm.weight !== undefined ? selectedForm.weight : PKM_DETAILS[p.id]?.w;
+
+  const formEntries = React.useMemo(() => {
+    const baseEntries = PDEX[p.id] || [];
+    if (selectedForm) {
+      const descText = getFormDescription(p, selectedForm);
+      return [{ g: 'Forme', t: descText }, ...baseEntries];
+    }
+    return baseEntries.length ? baseEntries : [{ g: 'Pokédex', t: 'Aucune donnée.' }];
+  }, [p, selectedForm]);
 
   const cycleStatus = () => {
     const next = !status ? 'en main' : status === 'en main' ? 'rangé' : null;
     onSet(next);
+  };
+
+  const handleEvoClick = (eid) => {
+    if (eid !== p.id && onNavigate && PKM[eid]) {
+      onNavigate(PKM[eid]);
+    }
   };
 
   return (
@@ -173,14 +189,14 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
             }}>
               {currentName}
             </div>
-            {apiData?.h != null && (
+            {currentHeight != null && (
               <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 5 }}>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,.42)', fontWeight: 600 }}>
-                  {(apiData.h / 10).toFixed(1)} m
+                  {(currentHeight / 10).toFixed(1)} m
                 </span>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,.15)' }}>/</span>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,.42)', fontWeight: 600 }}>
-                  {(apiData.w / 10).toFixed(1)} kg
+                  {(currentWeight / 10).toFixed(1)} kg
                 </span>
               </div>
             )}
@@ -284,7 +300,21 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
             <Lbl>Faiblesses</Lbl>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {currentWeak.length ? (
-                currentWeak.map(w => <TBadge key={w} type={w} />)
+                currentWeak.map(w => <TBadge key={w.type} type={w.type} mult={w.mult} />)
+              ) : (
+                <span style={{ color: 'rgba(255,255,255,.28)', fontSize: 12 }}>
+                  Aucune
+                </span>
+              )}
+            </div>
+          </Card>
+
+          {/* Resistances */}
+          <Card>
+            <Lbl>R\u00e9sistances & Immunit\u00e9s</Lbl>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {currentResist.length ? (
+                currentResist.map(r => <TBadge key={r.type} type={r.type} mult={r.mult} />)
               ) : (
                 <span style={{ color: 'rgba(255,255,255,.28)', fontSize: 12 }}>
                   Aucune
@@ -306,7 +336,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
               }}>
                 {/* Base Form button */}
                 <button
-                  onClick={() => setSelectedForm(null)}
+                  onClick={() => { setSelectedForm(null); setEi(0); }}
                   style={{
                     flexShrink: 0,
                     width: 90,
@@ -341,7 +371,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
                   return (
                     <button
                       key={form.poke_id}
-                      onClick={() => setSelectedForm(form)}
+                      onClick={() => { setSelectedForm(form); setEi(0); }}
                       style={{
                         flexShrink: 0,
                         width: 90,
@@ -448,30 +478,39 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
                         →
                       </span>
                     ),
-                    <div
-                      key={eid}
-                      style={{
-                        textAlign: 'center',
-                        flexShrink: 0,
-                        background: isc ? hexToRgba(currentTc, 0.18) : 'transparent',
-                        borderRadius: 8,
-                        padding: '4px 8px',
-                        border: isc ? `1px solid ${hexToRgba(currentTc, 0.38)}` : '1px solid transparent',
-                        minWidth: 58,
-                        opacity: isc ? 1 : 0.65
-                      }}
-                    >
-                      <PkImg p={ep} sz={46} />
-                      <div style={{
-                        fontSize: 9,
-                        color: isc ? '#fff' : 'rgba(255,255,255,.45)',
-                        fontWeight: isc ? 700 : 400,
-                        marginTop: 2,
-                        lineHeight: 1.3
-                      }}>
-                        {ep.name}
-                      </div>
-                    </div>
+                    <button
+                       key={eid}
+                       disabled={isc}
+                       onClick={() => handleEvoClick(eid)}
+                       style={{
+                         textAlign: 'center',
+                         flexShrink: 0,
+                         background: isc ? hexToRgba(currentTc, 0.18) : 'transparent',
+                         borderRadius: 8,
+                         padding: '4px 8px',
+                         border: isc ? `1px solid ${hexToRgba(currentTc, 0.38)}` : '1px solid transparent',
+                         minWidth: 58,
+                         opacity: isc ? 1 : 0.75,
+                         cursor: isc ? 'default' : 'pointer',
+                         fontFamily: 'inherit',
+                         display: 'flex',
+                         flexDirection: 'column',
+                         alignItems: 'center',
+                         gap: 2,
+                         transition: 'all 0.15s'
+                       }}
+                     >
+                       <PkImg p={ep} sz={46} />
+                       <div style={{
+                         fontSize: 9,
+                         color: isc ? '#fff' : 'rgba(255,255,255,.45)',
+                         fontWeight: isc ? 700 : 400,
+                         marginTop: 2,
+                         lineHeight: 1.3
+                       }}>
+                         {ep.name}
+                       </div>
+                     </button>
                   ];
                 }).filter(Boolean)}
               </div>
@@ -482,7 +521,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
           <Card>
             <Lbl>Entrées Pokédex</Lbl>
             <div style={{ display: 'flex', gap: 5, marginBottom: 11, overflowX: 'auto' }}>
-              {entries.map((en, idx) => (
+              {formEntries.map((en, idx) => (
                 <button
                   key={idx}
                   onClick={() => setEi(idx)}
@@ -509,7 +548,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, theme, ge
               lineHeight: 1.65,
               margin: 0
             }}>
-              {entries[ei]?.t}
+              {formEntries[ei]?.t}
             </p>
           </Card>
 
