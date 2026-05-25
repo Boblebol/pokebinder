@@ -285,7 +285,7 @@ export default function TrainersScreen({ col, theme }) {
           {ACHIEVEMENTS.map(ach => {
             const isOk = ach.check(col);
             const cl = ach.color;
-            const deps = ach.id === 'grand-maitre' ? ACHIEVEMENTS.filter(a => ['champ-kanto', 'champ-johto', 'champ-hoenn'].includes(a.id)) : [];
+            const deps = ach.id === 'grand-maitre' ? ACHIEVEMENTS.filter(a => a.id.startsWith('champ-')) : [];
 
             return (
               <div key={ach.id} style={{
