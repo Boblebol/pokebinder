@@ -42,7 +42,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
             Format de page
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            {[[3, 3], [4, 3], [4, 4]].map(([r, c]) => {
+            {[[3, 3], [3, 4], [4, 4]].map(([r, c]) => {
               const on = localCfg.gridRows === r && localCfg.gridCols === c;
               return (
                 <button
