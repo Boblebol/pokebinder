@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import PkCard from '../components/PkCard.jsx';
 import PkDetail from '../components/PkDetail.jsx';
-import { PLIST, REGIONS, GAME_POKEDEXES } from '../data/index.js';
+import { PLIST, REGIONS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
 export default function PokedexScreen({ col, setCol, theme, getLoc }) {
@@ -10,7 +10,6 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
   const [sel, setSel] = useState(null);
   const [dexMode, setDexMode] = useState('national');
   const [regionId, setRegionId] = useState(REGIONS[0].id);
-  const [gameDexId, setGameDexId] = useState(GAME_POKEDEXES[0]?.id || '');
 
   const base = useMemo(() => {
     if (dexMode === 'national') return PLIST;
@@ -18,12 +17,8 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
       const r = REGIONS.find(x => x.id === regionId) || REGIONS[0];
       return PLIST.filter(p => p.id >= r.range[0] && p.id <= r.range[1]);
     }
-    if (dexMode === 'games') {
-      const g = GAME_POKEDEXES.find(x => x.id === gameDexId) || GAME_POKEDEXES[0];
-      return g ? PLIST.filter(p => g.pokemon.includes(p.id)) : [];
-    }
     return PLIST;
-  }, [dexMode, regionId, gameDexId]);
+  }, [dexMode, regionId]);
 
   const filtered = useMemo(() => base.filter(p => {
     if (search) {
@@ -102,8 +97,7 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
         <div style={{ display: 'flex', background: 'rgba(255,255,255,.07)', borderRadius: 10, padding: 3, marginBottom: 8 }}>
           {[
             { id: 'national', l: 'National' },
-            { id: 'regional', l: 'Régional' },
-            { id: 'games', l: 'Jeux' }
+            { id: 'regional', l: 'Régional' }
           ].map(m => (
             <button
               key={m.id}
@@ -154,34 +148,7 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
           </div>
         )}
 
-        {/* Game Pokedex tabs (visible in games mode only) */}
-        {dexMode === 'games' && (
-          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 4 }}>
-            {GAME_POKEDEXES.map(g => (
-              <button
-                key={g.id}
-                onClick={() => setGameDexId(g.id)}
-                style={{
-                  padding: '5px 14px',
-                  borderRadius: 20,
-                  flexShrink: 0,
-                  border: gameDexId === g.id ? `1px solid ${theme.accent}` : '1px solid rgba(255,255,255,.12)',
-                  background: gameDexId === g.id ? hexToRgba(theme.accent, 0.14) : 'transparent',
-                  color: gameDexId === g.id ? theme.accent : 'rgba(255,255,255,.42)',
-                  cursor: 'pointer',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  fontFamily: 'inherit',
-                  transition: 'all 0.15s'
-                }}
-              >
-                {g.label_fr}
-              </button>
-            ))}
-          </div>
-        )}
 
-        {/* Search Bar */}
         <div style={{
           background: 'rgba(255,255,255,.08)',
           borderRadius: 10,

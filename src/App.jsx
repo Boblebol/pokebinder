@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import TabBar from './components/TabBar.jsx';
 import PokedexScreen from './screens/PokedexScreen.jsx';
 import TrainersScreen from './screens/TrainersScreen.jsx';
+import BadgesScreen from './screens/BadgesScreen.jsx';
+import SuccesScreen from './screens/SuccesScreen.jsx';
 import BindersScreen from './screens/BindersScreen.jsx';
 import DashboardScreen from './screens/DashboardScreen.jsx';
 import SettingsScreen from './screens/SettingsScreen.jsx';
@@ -144,8 +146,8 @@ export default function App() {
             {tab === 'pokedex' && (
               <PokedexScreen col={col} setCol={setCol} theme={theme} getLoc={getLoc} />
             )}
-            {tab === 'trainers' && (
-              <TrainersScreen col={col} theme={theme} />
+            {tab === 'succes' && (
+              <SuccesScreen col={col} theme={theme} />
             )}
             {tab === 'binders' && (
               <BindersScreen col={col} bcfg={bcfg} theme={theme} getLoc={getLoc} />

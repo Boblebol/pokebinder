@@ -3,11 +3,11 @@ import { hexToRgba } from '../utils/color.js';
 
 export default function TabBar({ tab, setTab, accent }) {
   const tabs = [
-    { id: 'pokedex', l: 'Pokédex', ic: '📖' },
-    { id: 'trainers', l: 'Dresseurs', ic: '⚔️' },
-    { id: 'binders', l: 'Classeurs', ic: '📋' },
-    { id: 'dashboard', l: 'Stats', ic: '📊' },
-    { id: 'settings', l: 'Config', ic: '⚙️' }
+    { id: 'pokedex',   l: 'Pokédex',  ic: '📖' },
+    { id: 'succes',    l: 'Succès',    ic: '🏆' },
+    { id: 'binders',   l: 'Classeurs', ic: '📋' },
+    { id: 'dashboard', l: 'Stats',     ic: '📊' },
+    { id: 'settings',  l: 'Config',    ic: '⚙️' }
   ];
 
   return (

@@ -55,6 +55,10 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
     setSelectedForm(null);
   }, [p.id]);
 
+  useEffect(() => {
+    setEi(0);
+  }, [selectedForm]);
+
   const loc = getLoc(p.id);
   const chain = p.evoChain || [p.id];
   const rel = TRAINERS.filter(t => t.team.includes(p.id));
@@ -82,6 +86,8 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
     }
     return baseEntries.length ? baseEntries : [{ g: 'Pokédex', t: 'Aucune donnée.' }];
   }, [p, selectedForm]);
+
+  const safeEi = Math.min(ei, formEntries.length - 1);
 
   const cycleStatus = () => {
     const next = !status ? 'en main' : status === 'en main' ? 'rangé' : null;
@@ -530,8 +536,8 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
                     borderRadius: 6,
                     border: 'none',
                     flexShrink: 0,
-                    background: ei === idx ? theme.accent : 'rgba(255,255,255,.09)',
-                    color: ei === idx ? '#fff' : 'rgba(255,255,255,.42)',
+                    background: safeEi === idx ? theme.accent : 'rgba(255,255,255,.09)',
+                    color: safeEi === idx ? '#fff' : 'rgba(255,255,255,.42)',
                     cursor: 'pointer',
                     fontSize: 10,
                     fontWeight: 600,
@@ -548,18 +554,18 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
               lineHeight: 1.65,
               margin: 0
             }}>
-              {formEntries[ei]?.t}
+              {formEntries[safeEi]?.t}
             </p>
           </Card>
 
-          {/* Related Trainers */}
-          {rel.length > 0 && (
+          {/* Related Trainers – only shown when fully unlocked */}
+          {rel.filter(tr => tr.team.every(id => col[id] === 'rangé' || col[id] === 'en main')).length > 0 && (
             <Card>
               <Lbl>Dresseurs associés</Lbl>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {rel.map(tr => {
-                  const isTrOk = tr.team.every(id => col[id] === 'rangé' || col[id] === 'en main');
-                  return (
+                {rel
+                  .filter(tr => tr.team.every(id => col[id] === 'rangé' || col[id] === 'en main'))
+                  .map(tr => (
                     <div
                       key={tr.id}
                       style={{
@@ -583,18 +589,18 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
                         fontSize: 16,
                         flexShrink: 0
                       }}>
-                        {isTrOk ? (tr.role === 'Rival' ? '⚔' : tr.role === 'Élite 4' ? '👑' : '🏆') : '🔒'}
+                        {tr.role === 'Rival' ? '⚔' : tr.role === 'Élite 4' ? '👑' : '🏆'}
                       </div>
                       <div>
-                        <div className={isTrOk ? '' : 'blur-locked'} style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
                           {tr.name}
                         </div>
-                        <div className={isTrOk ? '' : 'blur-locked'} style={{ fontSize: 10, color: 'rgba(255,255,255,.32)' }}>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.32)' }}>
                           {tr.role} · {tr.city}
                         </div>
                       </div>
                       {tr.badge && (
-                        <div className={isTrOk ? '' : 'blur-locked'} style={{
+                        <div style={{
                           marginLeft: 'auto',
                           fontSize: 10,
                           color: tr.bc,
@@ -607,8 +613,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
                         </div>
                       )}
                     </div>
-                  );
-                })}
+                  ))}
               </div>
             </Card>
           )}

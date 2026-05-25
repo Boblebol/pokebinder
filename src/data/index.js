@@ -12,6 +12,7 @@ export { TYPE_COLORS, TYPE_LABELS, TYPE_WEAKNESSES, STATUS_CONFIG, getTypeEffect
 export { POKEMON_FORMS } from './pokemonForms.js';
 export { PKM_DETAILS } from './pokemonDetails.js';
 export { GAME_POKEDEXES } from './gamePokedexes.js';
+export { BADGES } from './badges.js';
 
 
 // Build the evolution lookup map

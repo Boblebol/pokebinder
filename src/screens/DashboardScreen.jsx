@@ -1,26 +1,104 @@
-import React, { useState, useMemo } from 'react';
-import { REGIONS, PLIST, TRAINERS } from '../data/index.js';
+import React, { useState, useMemo, useCallback } from 'react';
+import { REGIONS, PLIST, BADGES, ACHIEVEMENTS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
 export default function DashboardScreen({ col, setCol, theme }) {
   const [rTab, setRTab] = useState('global');
+  
   const RTABS = [
     { id: 'global', l: '🌍 Tout' },
     { id: 'kanto', l: '🔴 Kanto' },
     { id: 'johto', l: '⭐ Johto' },
-    { id: 'hoenn', l: '💚 Hoenn' }
+    { id: 'hoenn', l: '💚 Hoenn' },
+    { id: 'sinnoh', l: '❄️ Sinnoh' },
+    { id: 'unys', l: '⛰️ Unys' },
+    { id: 'kalos', l: '⚜️ Kalos' },
+    { id: 'alola', l: '☀️ Alola' },
+    { id: 'meltan', l: '🔩 Meltan' },
+    { id: 'galar', l: '🛡️ Galar' },
+    { id: 'hisui', l: '🗻 Hisui' },
+    { id: 'paldea', l: '🍊 Paldea' }
   ];
+
+  const isBadgeUnlocked = useCallback((badge) => {
+    const enc = badge.encounters[0];
+    if (!enc) return false;
+    const ids = [...new Set(enc.team.map(m => m.id).filter(Boolean))];
+    return ids.length > 0 && ids.every(id => col[id] === 'rangé' || col[id] === 'en main');
+  }, [col]);
+
+  const mapAchRegionToBadgeRegion = (achRegion) => {
+    switch (achRegion) {
+      case 'kanto': return 'kanto';
+      case 'johto': return 'gs';
+      case 'hoenn': return 'rs';
+      case 'sinnoh': return 'dp';
+      case 'unys': return 'bw';
+      case 'kalos': return 'xy';
+      case 'alola': return 'sm';
+      case 'galar': return 'swsh';
+      case 'paldea': return 'sv';
+      default: return achRegion;
+    }
+  };
+
+  const normalizedBadges = useMemo(() => {
+    return BADGES.map(b => {
+      if (b.region === 'johto') {
+        return { ...b, region: 'gs' };
+      }
+      return b;
+    });
+  }, []);
 
   const s = useMemo(() => {
     const reg = REGIONS.find(r => r.id === rTab);
     const base = reg ? PLIST.filter(p => p.id >= reg.range[0] && p.id <= reg.range[1]) : PLIST;
     const rv = base.map(p => col[p.id]);
-    const r = rv.filter(s => s === 'rangé').length;
-    const m = rv.filter(s => s === 'en main').length;
+    const r = rv.filter(st => st === 'rangé').length;
+    const m = rv.filter(st => st === 'en main').length;
     const t = base.length;
-    const trnrsBase = reg ? TRAINERS.filter(tr => tr.region === rTab) : TRAINERS;
-    const ub = trnrsBase.filter(tr => tr.badge && tr.team.every(id => col[id] === 'rangé' || col[id] === 'en main')).length;
-    const tb = trnrsBase.filter(tr => tr.badge).length;
+    
+    // Badges calculation
+    const regionBadges = rTab === 'global'
+      ? normalizedBadges
+      : normalizedBadges.filter(b => b.region === rTab);
+    const ub = regionBadges.filter(isBadgeUnlocked).length;
+    const tb = regionBadges.length;
+
+    // Achievements calculation
+    const regionAchs = rTab === 'global'
+      ? ACHIEVEMENTS
+      : ACHIEVEMENTS.filter(ach => ach.region && mapAchRegionToBadgeRegion(ach.region) === rTab);
+
+    const getAchCat = (ach) => {
+      if (ach.type === 'starters') return 'starters';
+      if (ach.type === 'prof') return 'prof';
+      if (ach.type === 'gyms') return 'gyms';
+      if (ach.type === 'meta') return 'meta';
+      if (ach.type === 'stade') return 'stade';
+      if (ach.type === 'special') return 'special';
+      return 'autre';
+    };
+
+    const achStats = {
+      starters: { cur: 0, total: 0, label: 'Starters complets', icon: '🌱' },
+      prof: { cur: 0, total: 0, label: 'Félicitations Profs', icon: '🎓' },
+      gyms: { cur: 0, total: 0, label: 'Succès Arènes', icon: '🏅' },
+      meta: { cur: 0, total: 0, label: 'Meta-Badges Pokédex', icon: '📖' },
+      stade: { cur: 0, total: 0, label: 'Milestones', icon: '💯' },
+      special: { cur: 0, total: 0, label: 'Succès Spéciaux', icon: '👑' },
+    };
+
+    regionAchs.forEach(ach => {
+      const cat = getAchCat(ach);
+      if (achStats[cat]) {
+        achStats[cat].total += 1;
+        if (ach.check(col)) {
+          achStats[cat].cur += 1;
+        }
+      }
+    });
     
     return {
       r,
@@ -28,9 +106,12 @@ export default function DashboardScreen({ col, setCol, theme }) {
       t,
       pct: Math.round(((r + m) / t) * 100) || 0,
       ub,
-      tb
+      tb,
+      achStats: Object.entries(achStats)
+        .map(([key, data]) => ({ key, ...data }))
+        .filter(cat => cat.total > 0)
     };
-  }, [col, rTab]);
+  }, [col, rTab, normalizedBadges, isBadgeUnlocked]);
 
   const R = 68;
   const ST = 13;
@@ -70,9 +151,11 @@ export default function DashboardScreen({ col, setCol, theme }) {
         alert('Erreur lors de la lecture du fichier JSON.');
       }
     };
+    reader.onloadend = () => {
+      // Clean up input value
+      event.target.value = '';
+    };
     reader.readAsText(file);
-    // Reset file input so user can import the same file again if needed
-    event.target.value = '';
   };
 
   return (
@@ -180,39 +263,88 @@ export default function DashboardScreen({ col, setCol, theme }) {
           ))}
         </div>
 
-        {/* Badges progression */}
-        <div style={{
-          background: 'rgba(255,255,255,.05)',
-          borderRadius: 12,
-          padding: '14px 16px',
-          marginBottom: 14,
-          border: '1px solid rgba(255,255,255,.07)'
-        }}>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
-            Badges débloqués
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 32 }}>🏅</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 6 }}>
-                <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 20, color: theme.accent }}>
-                  {String(s.ub)}
-                </span>
-                <span style={{ fontSize: 13, color: 'rgba(255,255,255,.25)' }}>
-                  /{s.tb}
-                </span>
-              </div>
-              <div style={{ height: 5, background: 'rgba(255,255,255,.08)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${s.tb ? ((s.ub / s.tb) * 100) : 0}%`,
-                  background: theme.accent,
-                  borderRadius: 3
-                }} />
-              </div>
+        {/* Objectifs & Succès progression */}
+        {(s.tb > 0 || s.achStats.length > 0) && (
+          <div style={{
+            background: 'rgba(255,255,255,.05)',
+            borderRadius: 12,
+            padding: '14px 16px',
+            marginBottom: 14,
+            border: '1px solid rgba(255,255,255,.07)'
+          }}>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>
+              Objectifs & Succès
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* Badges card */}
+              {s.tb > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <span style={{ fontSize: 32 }}>🏅</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Badges Débloqués</span>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                        <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: theme.accent }}>
+                          {s.ub}
+                        </span>
+                        <span style={{ fontSize: 10, color: 'rgba(255,255,255,.25)' }}>
+                          /{s.tb}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ height: 5, background: 'rgba(255,255,255,.08)', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${(s.ub / s.tb) * 100}%`,
+                        background: theme.accent,
+                        borderRadius: 3
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Achievements cards */}
+              {s.achStats.map(cat => {
+                const color = cat.key === 'starters' ? '#4ade80' :
+                              cat.key === 'prof' ? '#f472b6' :
+                              cat.key === 'gyms' ? '#38bdf8' :
+                              cat.key === 'meta' ? '#fb923c' :
+                              cat.key === 'stade' ? '#22d3ee' : '#a78bfa';
+
+                const pct = cat.total ? Math.round((cat.cur / cat.total) * 100) : 0;
+
+                return (
+                  <div key={cat.key} style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 4 }}>
+                    <span style={{ fontSize: 32 }}>{cat.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{cat.label}</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                          <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 14, color: color }}>
+                            {cat.cur}
+                          </span>
+                          <span style={{ fontSize: 10, color: 'rgba(255,255,255,.25)' }}>
+                            /{cat.total}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ height: 5, background: 'rgba(255,255,255,.08)', borderRadius: 3, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${pct}%`,
+                          background: color,
+                          borderRadius: 3
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Export / Import Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
