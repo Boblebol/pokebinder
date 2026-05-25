@@ -402,19 +402,21 @@ def import_data(
     Import and update regions, pokemons, evolutions, stats, pokedex descriptions, and trainers.
     """
     if not os.path.exists(bundle_path):
-        typer.echo(f"Error: consolidated bundle not found at {bundle_path}")
+        typer.secho(f"✗ Error: consolidated bundle not found at {bundle_path}", fg=typer.colors.RED, bold=True)
         raise typer.Exit(1)
 
-    typer.echo(f"Loading and validating {bundle_path}...")
-    with open(bundle_path, "r", encoding="utf-8") as f:
-        bundle_data = json.load(f)
-
-    # Validate using Pydantic
-    bundle = ConsolidatedBundle.model_validate(bundle_data)
-    typer.echo("Data successfully validated!")
+    typer.secho(f"📦 Loading and validating {bundle_path}...", fg=typer.colors.CYAN, bold=True)
+    try:
+        with open(bundle_path, "r", encoding="utf-8") as f:
+            bundle_data = json.load(f)
+        bundle = ConsolidatedBundle.model_validate(bundle_data)
+    except Exception as e:
+        typer.secho(f"✗ Validation failed: {e}", fg=typer.colors.RED, bold=True)
+        raise typer.Exit(1)
+        
+    typer.secho("✓ Data successfully validated!", fg=typer.colors.GREEN, bold=True)
 
     # 1. Map slugs to National Dex ID
-    # Note: we map all variant slugs to their base ID to robustly support evolution chain resolution
     slug_to_id = {p.slug: int(p.number) for p in bundle.pokedex.pokemon}
 
     # Load existing objects to preserve values
@@ -422,7 +424,7 @@ def import_data(
     existing_pdex = load_existing_js("src/data/pokedexEntries.js", "PDEX") or {}
 
     # --- 1. Generate regions.js ---
-    typer.echo("Generating src/data/regions.js...")
+    typer.secho("\n🌍 Generating src/data/regions.js...", fg=typer.colors.BLUE, bold=True)
     regions = bundle.pokedex.meta.regions
     regions_code = "export const REGIONS = [\n"
     for idx, r in enumerate(regions):
@@ -430,9 +432,10 @@ def import_data(
     regions_code = regions_code.rstrip(",\n") + "\n];\n"
     with open("src/data/regions.js", "w", encoding="utf-8") as f:
         f.write(regions_code)
+    typer.secho(f"  ✓ Saved {len(regions)} regions.", fg=typer.colors.GREEN)
 
     # --- 1.1 Generate gamePokedexes.js ---
-    typer.echo("Generating src/data/gamePokedexes.js...")
+    typer.secho("🎮 Generating src/data/gamePokedexes.js...", fg=typer.colors.BLUE, bold=True)
     gp = bundle_data.get("game_pokedexes", {})
     gp_pokedexes = gp.get("pokedexes", [])
     gp_apps = gp.get("appearances_by_slug", {})
@@ -455,9 +458,10 @@ def import_data(
     game_dex_code = game_dex_code.rstrip(",\n") + "\n];\n"
     with open("src/data/gamePokedexes.js", "w", encoding="utf-8") as f:
         f.write(game_dex_code)
+    typer.secho(f"  ✓ Saved {len(gp_pokedexes)} game Pokédexes.", fg=typer.colors.GREEN)
 
     # --- 2. Generate pokemon.js ---
-    typer.echo("Generating src/data/pokemon.js...")
+    typer.secho("🐱 Generating src/data/pokemon.js...", fg=typer.colors.BLUE, bold=True)
     pokemon_list = deduplicate_pokemon(bundle.pokedex.pokemon)
     pokemon_list.sort(key=lambda x: int(x.number))
 
@@ -473,13 +477,13 @@ def import_data(
     pokemon_code = pokemon_code.rstrip(",\n") + "\n];\n"
     with open("src/data/pokemon.js", "w", encoding="utf-8") as f:
         f.write(pokemon_code)
+    typer.secho(f"  ✓ Saved {len(pokemon_list)} Pokémon species.", fg=typer.colors.GREEN)
 
     # --- 3. Generate evolutions.js ---
-    typer.echo("Generating src/data/evolutions.js...")
+    typer.secho("🧬 Generating src/data/evolutions.js...", fg=typer.colors.BLUE, bold=True)
     evolution_chains = []
     seen_chains = set()
     for fam in bundle.evolution_families.families:
-        # Convert slugs to IDs
         chain = []
         for member in fam.members:
             if member in slug_to_id:
@@ -497,42 +501,57 @@ def import_data(
     evolutions_code = evolutions_code.rstrip(",\n") + "\n];\n"
     with open("src/data/evolutions.js", "w", encoding="utf-8") as f:
         f.write(evolutions_code)
+    typer.secho(f"  ✓ Saved {len(evolution_chains)} evolution chains.", fg=typer.colors.GREEN)
 
     # --- 4. Generate stats.js (merge existing stats) ---
-    typer.echo("Generating src/data/stats.js...")
+    typer.secho("📊 Generating src/data/stats.js...", fg=typer.colors.BLUE, bold=True)
     max_id = max(slug_to_id.values())
     stats_code = "export const STATS = {\n"
     for pid in range(1, max_id + 1):
-        # Preserve existing stats, or use default stats [60, 60, 60, 60, 60, 60]
         pstats = existing_stats.get(pid, [60, 60, 60, 60, 60, 60])
-        # Ensure stats are formatted correctly as a list of integers
         stats_code += f"  {pid}: {list(pstats)},\n"
     stats_code = stats_code.rstrip(",\n") + "\n};\n"
     with open("src/data/stats.js", "w", encoding="utf-8") as f:
         f.write(stats_code)
+    typer.secho(f"  ✓ Saved base stats for {max_id} Pokémon.", fg=typer.colors.GREEN)
 
     # --- 5. Generate pokedexEntries.js (merge existing, populate rest) ---
-    typer.echo("Generating src/data/pokedexEntries.js...")
+    typer.secho("📖 Generating src/data/pokedexEntries.js...", fg=typer.colors.BLUE, bold=True)
     pokedex_entries = {}
     
-    # Keep existing ones
-    if existing_pdex:
-        for pid, entries in existing_pdex.items():
-            pokedex_entries[int(pid)] = entries
-
-    # Add missing ones from descriptions
+    # Merge existing ones and bundle descriptions
     for p in pokemon_list:
         pid = int(p.number)
-        if pid not in pokedex_entries and p.descriptions:
-            desc_list = []
-            for d in p.descriptions[:2]: # Grab up to 2 entries
+        desc_list = []
+        seen_versions = set()
+        
+        # 1. Add descriptions from the bundle
+        if p.descriptions:
+            for d in p.descriptions:
                 v_name = VERSION_MAP.get(d.version, d.version.replace("-", " ").title())
                 clean_text = d.text.replace("\n", " ").replace("\r", "").strip()
-                # Clean up multiple whitespaces
                 clean_text = re.sub(r"\s+", " ", clean_text)
-                desc_list.append({"g": v_name, "t": clean_text})
-            if desc_list:
-                pokedex_entries[pid] = desc_list
+                if v_name not in seen_versions:
+                    seen_versions.add(v_name)
+                    desc_list.append({"g": v_name, "t": clean_text})
+                    
+        # 2. Merge existing ones if the version is not already present
+        if existing_pdex and pid in existing_pdex:
+            for ext in existing_pdex[pid]:
+                v_name = ext.get("g")
+                if v_name and v_name not in seen_versions:
+                    seen_versions.add(v_name)
+                    desc_list.append(ext)
+                    
+        if desc_list:
+            pokedex_entries[pid] = desc_list
+
+    # 3. Keep other existing descriptions not in the bundle list
+    if existing_pdex:
+        for pid, entries in existing_pdex.items():
+            pid_int = int(pid)
+            if pid_int not in pokedex_entries:
+                pokedex_entries[pid_int] = entries
 
     pokedex_code = "export const PDEX = {\n"
     for pid in sorted(pokedex_entries.keys()):
@@ -542,21 +561,19 @@ def import_data(
     pokedex_code = pokedex_code.rstrip(",\n") + "\n};\n"
     with open("src/data/pokedexEntries.js", "w", encoding="utf-8") as f:
         f.write(pokedex_code)
+    typer.secho(f"  ✓ Saved {len(pokedex_entries)} Pokédex descriptions entries.", fg=typer.colors.GREEN)
 
     # --- 6. Generate trainers.js ---
-    typer.echo("Generating src/data/trainers.js...")
+    typer.secho("⚔️ Generating src/data/trainers.js...", fg=typer.colors.BLUE, bold=True)
     trainers_list = []
     trainer_idx = 1
     
-    # Map Pokémon slugs to their types to determine badge colors
     pokemon_type_map = {}
     for p in bundle.pokedex.pokemon:
         if p.form is None:
             pokemon_type_map[p.slug] = TYPE_MAP.get(p.types[0], "normal")
 
-    # Sort badges to group them by region
     badges_items = list(bundle.badges.badges.items())
-    # Sort order: order of regions in metadata
     region_order = {r.id: idx for idx, r in enumerate(regions)}
     
     def badge_sort_key(item):
@@ -570,7 +587,6 @@ def import_data(
     for key, b in badges_items:
         trainer_name = b.trainer.name.fr or b.trainer.name.en
         
-        # Normalize role
         role_fr = b.trainer.role.fr
         if "Champion" in role_fr:
             role = "Champion Arène"
@@ -586,7 +602,6 @@ def import_data(
         city = b.location.city.fr or b.location.city.en
         region = b.location.region
         
-        # Map badge name if we have one, otherwise use the badge name from the key or leave None
         badge_name = BADGE_MAP.get(key, None)
         if badge_name:
             escaped_badge = badge_name.replace("'", "\\'")
@@ -594,7 +609,6 @@ def import_data(
         else:
             badge_str = "null"
         
-        # Get team member IDs from the first encounter
         team_ids = []
         if b.encounters:
             first_team = b.encounters[0].team
@@ -602,11 +616,9 @@ def import_data(
                 if member.slug in slug_to_id:
                     team_ids.append(slug_to_id[member.slug])
         
-        # If team is empty, skip or mock
         if not team_ids:
             continue
             
-        # Determine background color based on first pokemon's primary type
         first_pk_slug = b.encounters[0].team[0].slug
         first_pk_type = pokemon_type_map.get(first_pk_slug, "normal")
         color = TYPE_COLORS.get(first_pk_type, "#888888")
@@ -615,7 +627,6 @@ def import_data(
         desc = desc.replace("\n", " ").replace("\r", "").replace("'", "\\'").strip()
         desc = re.sub(r"\s+", " ", desc)
         
-        # Add to output code
         escaped_name = trainer_name.replace("'", "\\'")
         escaped_city = city.replace("'", "\\'")
         escaped_role = role.replace("'", "\\'")
@@ -629,19 +640,17 @@ def import_data(
     trainers_code = trainers_code.rstrip(",\n") + "\n];\n"
     with open("src/data/trainers.js", "w", encoding="utf-8") as f:
         f.write(trainers_code)
+    typer.secho(f"  ✓ Saved {trainer_idx - 1} trainers.", fg=typer.colors.GREEN)
 
     # --- 7. Generate achievements.js ---
-    typer.echo("Generating src/data/achievements.js...")
-    # Generate list of achievements dynamically based on regions that have trainers with badges
+    typer.secho("🏆 Generating src/data/achievements.js...", fg=typer.colors.BLUE, bold=True)
     badge_regions = set()
     for key, b in bundle.badges.badges.items():
         if key in BADGE_MAP:
             badge_regions.add(b.location.region)
             
-    # Ordered by region index
     sorted_badge_regions = sorted(list(badge_regions), key=lambda r: region_order.get(r, 999))
     
-    # Region achievements icons and colors map
     REGION_ACHIEVEMENTS_CFG = {
         "kanto": {"icon": "🔴", "color": "#ff375f"},
         "johto": {"icon": "⭐", "color": "#ffd60a"},
@@ -661,7 +670,6 @@ import { POKEMON_RAW } from './pokemon.js';
 export const ACHIEVEMENTS = [
 """
     
-    # Generate region achievements
     for reg_id in sorted_badge_regions:
         reg_meta = next((r for r in regions if r.id == reg_id), None)
         reg_name = reg_meta.label_fr if reg_meta else reg_id.capitalize()
@@ -678,7 +686,6 @@ export const ACHIEVEMENTS = [
   }},
 """
 
-    # Generate Grand Maître achievement
     reg_list_str = ", ".join([f"'{r}'" for r in sorted_badge_regions])
     achievements_code += f"""  {{
     id: 'grand-maitre',
@@ -700,11 +707,12 @@ export const ACHIEVEMENTS = [
 """
     with open("src/data/achievements.js", "w", encoding="utf-8") as f:
         f.write(achievements_code)
+    typer.secho("  ✓ Saved achievements.", fg=typer.colors.GREEN)
 
-    typer.echo("\nAll PokéClasseur data files successfully updated!")
-    typer.echo(f"Total Pokémon imported: {len(pokemon_list)}")
-    typer.echo(f"Total Evolution Chains: {len(evolution_chains)}")
-    typer.echo(f"Total Trainers: {trainer_idx - 1}")
+    typer.secho("\n✨ All PokéClasseur data files successfully updated!", fg=typer.colors.GREEN, bold=True)
+    typer.echo(f"  - Total Pokémon: {len(pokemon_list)}")
+    typer.echo(f"  - Total Evolution Chains: {len(evolution_chains)}")
+    typer.echo(f"  - Total Trainers: {trainer_idx - 1}")
 
 
 @app.command()
@@ -719,15 +727,20 @@ def status():
     trainers = load_existing_js("src/data/trainers.js", "TRAINERS") or []
     pdex = load_existing_js("src/data/pokedexEntries.js", "PDEX") or {}
 
-    typer.echo("=== PokéClasseur Current Data Status ===")
-    typer.echo(f"Regions count: {len(regions)}")
+    typer.secho("\n📊 === PokéClasseur Current Data Status ===", fg=typer.colors.YELLOW, bold=True)
+    typer.secho(f"📂 Regions count: {len(regions)}", fg=typer.colors.CYAN, bold=True)
     for r in regions:
         typer.echo(f"  - {r['name']} ({r['id']}): range {r['range'][0]} to {r['range'][1]}")
-    typer.echo(f"Pokémon count: {len(pokemon)}")
-    typer.echo(f"Evolution chains count: {len(evolutions)}")
-    typer.echo(f"Stats populated: {len(stats)} / {len(pokemon)} Pokémon")
-    typer.echo(f"Pokedex entries: {len(pdex)} / {len(pokemon)} Pokémon")
-    typer.echo(f"Trainers count: {len(trainers)}")
+    typer.secho(f"🐱 Pokémon count: {len(pokemon)}", fg=typer.colors.CYAN, bold=True)
+    typer.secho(f"🧬 Evolution chains count: {len(evolutions)}", fg=typer.colors.CYAN, bold=True)
+    
+    stats_pct = round(len(stats) / len(pokemon) * 100) if pokemon else 0
+    typer.secho(f"📊 Stats populated: {len(stats)} / {len(pokemon)} Pokémon ({stats_pct}%)", fg=typer.colors.CYAN, bold=True)
+    
+    pdex_pct = round(len(pdex) / len(pokemon) * 100) if pokemon else 0
+    typer.secho(f"📖 Pokédex entries: {len(pdex)} / {len(pokemon)} Pokémon ({pdex_pct}%)", fg=typer.colors.CYAN, bold=True)
+    
+    typer.secho(f"⚔️ Trainers count: {len(trainers)}", fg=typer.colors.CYAN, bold=True)
 
 
 def clean_variety_word(w: str) -> str:
@@ -814,7 +827,7 @@ async def fetch_pokemon_data(client: httpx.AsyncClient, pid: int, fetch_stats: b
                                     version_name = entry.get("version", {}).get("name", "")
                                     v_name = VERSION_MAP.get(version_name, version_name.replace("-", " ").title())
                                     desc_list.append({"g": v_name, "t": clean_text})
-                        descriptions = desc_list[:2]
+                        descriptions = desc_list
                         
                         # Extract varieties
                         varieties = data.get("varieties", [])
@@ -910,17 +923,16 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
         if all_desc or not pdesc or (needs_forms and pid not in existing_forms) or has_incomplete_forms:
             desc_targets.append(pid)
             
-    all_targets = sorted(list(set(stats_targets) | set(desc_targets) | set(details_targets)))
-    
+    all_targets = sorted(list(set(stats_targets + desc_targets + details_targets)))
     if not all_targets:
-        typer.echo("All stats, descriptions, details, and forms are already up to date! Nothing to scrape.")
+        typer.secho("✓ All stats, descriptions, details, and forms are already up to date! Nothing to scrape.", fg=typer.colors.GREEN, bold=True)
         return
         
-    typer.echo(f"Found {len(pokemon_ids)} total Pokémon in database.")
-    typer.echo(f"Need to fetch details for: {len(details_targets)} Pokémon.")
-    typer.echo(f"Need to fetch stats for: {len(stats_targets)} Pokémon.")
-    typer.echo(f"Need to fetch descriptions/forms for: {len(desc_targets)} Pokémon.")
-    typer.echo(f"Querying PokéAPI for {len(all_targets)} Pokémon (concurrency={concurrency})...")
+    typer.secho(f"ℹ Found {len(pokemon_ids)} total Pokémon in database.", fg=typer.colors.CYAN)
+    typer.echo(f"  - Need to fetch details for: {len(details_targets)} Pokémon.")
+    typer.echo(f"  - Need to fetch stats for: {len(stats_targets)} Pokémon.")
+    typer.echo(f"  - Need to fetch descriptions/forms for: {len(desc_targets)} Pokémon.")
+    typer.secho(f"🚀 Querying PokéAPI for {len(all_targets)} Pokémon (concurrency={concurrency})...", fg=typer.colors.MAGENTA, bold=True)
     
     bundle_by_id = defaultdict(list)
     bundle_path = "file_imports/pokevault_bundle.json"
@@ -931,7 +943,7 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
             for p in bundle_data.get("pokedex", {}).get("pokemon", []):
                 bundle_by_id[int(p["number"])].append(p)
         except Exception as e:
-            typer.echo(f"Warning: could not load bundle for variety matching: {e}")
+            typer.secho(f"⚠ Warning: could not load bundle for variety matching: {e}", fg=typer.colors.YELLOW)
             
     sem = asyncio.Semaphore(concurrency)
     
@@ -976,19 +988,19 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
                     form_name = var["name"].replace("-", " ").title()
                     form_types = ["normal"]
                 forms_list.append({
-                    "poke_id": var["poke_id"],
-                    "name": form_name,
-                    "types": form_types,
-                    "stats": var.get("stats"),
-                    "height": var.get("height"),
-                    "weight": var.get("weight")
+                     "poke_id": var["poke_id"],
+                     "name": form_name,
+                     "types": form_types,
+                     "stats": var.get("stats"),
+                     "height": var.get("height"),
+                     "weight": var.get("weight")
                 })
             if forms_list:
                 existing_forms[pid] = forms_list
                 forms_updated += 1
             
     if stats_updated > 0 or all_stats:
-        typer.echo("Writing updated src/data/stats.js...")
+        typer.secho("📝 Writing updated src/data/stats.js...", fg=typer.colors.BLUE)
         full_pokemon_ids = [item[0] for item in pokemon_raw]
         max_id = max(full_pokemon_ids)
         stats_code = "export const STATS = {\n"
@@ -1000,7 +1012,7 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
             f.write(stats_code)
             
     if details_updated > 0 or not os.path.exists("src/data/pokemonDetails.js"):
-        typer.echo("Writing updated src/data/pokemonDetails.js...")
+        typer.secho("📝 Writing updated src/data/pokemonDetails.js...", fg=typer.colors.BLUE)
         details_code = "export const PKM_DETAILS = {\n"
         for pid in sorted(existing_details.keys()):
             h_w = existing_details[pid]
@@ -1008,9 +1020,9 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
         details_code = details_code.rstrip(",\n") + "\n};\n"
         with open("src/data/pokemonDetails.js", "w", encoding="utf-8") as f:
             f.write(details_code)
-
+ 
     if desc_updated > 0 or all_desc:
-        typer.echo("Writing updated src/data/pokedexEntries.js...")
+        typer.secho("📝 Writing updated src/data/pokedexEntries.js...", fg=typer.colors.BLUE)
         pokedex_code = "export const PDEX = {\n"
         for pid in sorted(existing_pdex.keys()):
             entries = existing_pdex[pid]
@@ -1022,7 +1034,7 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
             f.write(pokedex_code)
             
     if forms_updated > 0 or not os.path.exists("src/data/pokemonForms.js"):
-        typer.echo("Writing updated src/data/pokemonForms.js...")
+        typer.secho("📝 Writing updated src/data/pokemonForms.js...", fg=typer.colors.BLUE)
         forms_code = "export const POKEMON_FORMS = {\n"
         for pid in sorted(existing_forms.keys()):
             forms_list = existing_forms[pid]
@@ -1033,7 +1045,7 @@ async def scrape_api_async(all_stats: bool, all_desc: bool, concurrency: int, li
         with open("src/data/pokemonForms.js", "w", encoding="utf-8") as f:
             f.write(forms_code)
             
-    typer.echo(f"\nScraping complete! Updated {stats_updated} stats, {desc_updated} descriptions, and {forms_updated} forms.")
+    typer.secho(f"\n✨ Scraping complete! Updated {stats_updated} stats, {desc_updated} descriptions, and {forms_updated} forms.", fg=typer.colors.GREEN, bold=True)
 
 
 @app.command()
@@ -1047,6 +1059,57 @@ def scrape_api(
     Scrape missing base stats, French Pokédex descriptions, and specific forms from PokéAPI (pokeapi.co).
     """
     asyncio.run(scrape_api_async(all_stats, all_desc, concurrency, limit))
+
+
+@app.command()
+def sync(
+    bundle_path: str = typer.Option(
+        "file_imports/pokevault_bundle.json",
+        "--bundle",
+        "-b",
+        help="Path to consolidated bundle file"
+    ),
+    scrape: bool = typer.Option(True, "--scrape/--no-scrape", help="Fetch missing stats and descriptions from PokéAPI after import")
+):
+    """
+    Import local bundle file and scrape any remaining missing data from PokéAPI.
+    """
+    typer.secho("\n🔄 [1/2] Importing local bundle data...", fg=typer.colors.MAGENTA, bold=True)
+    import_data(bundle_path)
+    if scrape:
+        typer.secho("\n🌐 [2/2] Scraping remaining missing data from PokéAPI...", fg=typer.colors.MAGENTA, bold=True)
+        asyncio.run(scrape_api_async(all_stats=False, all_desc=False, concurrency=5, limit=None))
+    typer.secho("\n✨ Synchronization fully completed successfully!", fg=typer.colors.GREEN, bold=True)
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    """
+    PokéClasseur Data CLI Tool - Update stats, dex, and trainers.
+    """
+    if ctx.invoked_subcommand is None:
+        typer.secho("\n👋 Welcome to the PokéClasseur Data CLI!", fg=typer.colors.MAGENTA, bold=True)
+        typer.secho("Please choose an operation to perform:", fg=typer.colors.CYAN)
+        typer.echo("  1. 🔄 Full Synchronization (Import local bundle + Scrape missing PokéAPI entries)")
+        typer.echo("  2. 📊 Show Status (Display count of imported resources)")
+        typer.echo("  3. 📦 Import bundle data only")
+        typer.echo("  4. 🌐 Scrape PokéAPI data only")
+        typer.echo("  0. ❌ Exit")
+        
+        choice = typer.prompt("\nEnter choice (0-4)", default="1")
+        if choice == "1":
+            ctx.invoke(sync)
+        elif choice == "2":
+            ctx.invoke(status)
+        elif choice == "3":
+            ctx.invoke(import_data)
+        elif choice == "4":
+            ctx.invoke(scrape_api)
+        elif choice == "0":
+            typer.secho("👋 Goodbye!", fg=typer.colors.YELLOW)
+            raise typer.Exit(0)
+        else:
+            typer.secho("❌ Invalid choice. Exiting.", fg=typer.colors.RED)
 
 
 if __name__ == "__main__":
