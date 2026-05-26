@@ -3,7 +3,7 @@ import PkImg from '../components/PkImg.jsx';
 import { REGIONS, PKM, BCFG, TYPE_COLORS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
-export default function BindersScreen({ col, bcfg, theme, getLoc }) {
+export default function BindersScreen({ col, setCol, bcfg, theme, getLoc }) {
   const [ai, setAi] = useState(0);
   const cfg = bcfg || BCFG;
   const rt = REGIONS[ai] || REGIONS[0];
@@ -131,6 +131,13 @@ export default function BindersScreen({ col, bcfg, theme, getLoc }) {
                         <div
                           key={ci}
                           title={`#${String(cell.id).padStart(3, '0')} ${cell.name}`}
+                          onClick={() => {
+                            if (setCol) {
+                              const currentStatus = cell.status;
+                              const nextStatus = !currentStatus ? 'en main' : currentStatus === 'en main' ? 'rangé' : null;
+                              setCol(prev => ({ ...prev, [cell.id]: nextStatus }));
+                            }
+                          }}
                           style={{
                             aspectRatio: '1',
                             borderRadius: 3,
@@ -139,7 +146,19 @@ export default function BindersScreen({ col, bcfg, theme, getLoc }) {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            position: 'relative'
+                            position: 'relative',
+                            cursor: 'pointer',
+                            userSelect: 'none',
+                            transition: 'all 0.1s'
+                          }}
+                          onPointerDown={(ev) => {
+                            ev.currentTarget.style.transform = 'scale(0.92)';
+                          }}
+                          onPointerUp={(ev) => {
+                            ev.currentTarget.style.transform = 'scale(1)';
+                          }}
+                          onPointerLeave={(ev) => {
+                            ev.currentTarget.style.transform = 'scale(1)';
                           }}
                         >
                           <PkImg

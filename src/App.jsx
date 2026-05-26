@@ -322,7 +322,7 @@ export default function App() {
               />
             )}
             {tab === 'binders' && (
-              <BindersScreen col={col} bcfg={bcfg} theme={theme} getLoc={getLoc} />
+              <BindersScreen col={col} setCol={setCol} bcfg={bcfg} theme={theme} getLoc={getLoc} />
             )}
             {tab === 'dashboard' && (
               <DashboardScreen col={col} setCol={setCol} theme={theme} />
