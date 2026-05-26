@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pokeclasseur-cache-v1';
+const CACHE_NAME = 'pokeclasseur-cache-v1.1.4';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 
@@ -78,5 +78,12 @@ self.addEventListener('fetch', (event) => {
         });
       })
     );
+  }
+});
+
+// Skip waiting dynamically when instructed by the app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
   }
 });

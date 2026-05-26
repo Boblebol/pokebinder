@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import PkImg from '../components/PkImg.jsx';
 import { BADGES } from '../data/badges.js';
 import { ACHIEVEMENTS, PKM, STATS, TYPE_COLORS } from '../data/index.js';
@@ -491,10 +491,25 @@ function AchievementGridCard({ ach, col }) {
 }
 
 // ── Écran principal ────────────────────────────────────────────────────────
-export default function SuccesScreen({ col, theme }) {
+export default function SuccesScreen({ col, theme, initialSelectedBadgeId, onClearInitialSelectedBadge }) {
   const [sel, setSel] = useState(null);
   const [dexMode, setDexMode] = useState('regional');
   const [catFilter, setCatFilter] = useState('all');
+
+  // Auto-open badge details from toast notification
+  useEffect(() => {
+    if (initialSelectedBadgeId) {
+      const badge = BADGES.find((b) => b.id === initialSelectedBadgeId);
+      if (badge) {
+        setTimeout(() => {
+          setSel(badge);
+        }, 0);
+      }
+      if (onClearInitialSelectedBadge) {
+        onClearInitialSelectedBadge();
+      }
+    }
+  }, [initialSelectedBadgeId, onClearInitialSelectedBadge]);
 
   // Normalisation des badges (Albert/Falkner johto -> gs)
   const normalizedBadges = useMemo(() => {

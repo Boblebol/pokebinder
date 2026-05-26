@@ -73,6 +73,9 @@ L'application intègre un Service Worker (`sw.js`) et des polices locales pré-p
 
 L'icône Pokéball s'ajoute à votre écran d'accueil et l'application s'ouvre en mode plein écran sans barres de navigation.
 
+- **Mises à jour intelligentes** : Une bannière interactive notifie l'utilisateur lorsqu'une mise à jour de l'application est disponible (nouvelle build sur Netlify), permettant de recharger proprement la PWA sans mélanger d'anciens et nouveaux fichiers.
+- **Notifications de Déblocage (Toasts)** : Lorsqu'un badge ou un succès est débloqué, un toast flottant animé apparaît en haut de l'écran avec une médaille, un effet de halo lumineux et un lien direct pour voir les détails du badge.
+
 ---
 
 ## ☁️ Déploiement sur Netlify
