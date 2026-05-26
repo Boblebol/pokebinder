@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pokeclasseur-cache-v1.1.6';
+const CACHE_NAME = 'pokeclasseur-cache-v1.1.7';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',

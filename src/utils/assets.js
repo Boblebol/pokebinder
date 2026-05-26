@@ -277,6 +277,7 @@ const TRAINER_NAME_MAP = {
 export const PROFESSOR_MAP = {
   'champ-kanto': 'oak',
   'champ-johto': 'elm',
+  'champ-gs': 'elm',
   'champ-rs': 'birch',
   'champ-dp': 'rowan',
   'champ-bw': 'juniper',
