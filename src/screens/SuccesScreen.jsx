@@ -432,6 +432,8 @@ const getAchCategory = (ach) => {
       return 'prof';
     case 'gyms':
       return 'arene';
+    case 'maitrise':
+      return 'maitrise';
     case 'meta':
     case 'stade':
       return 'pokedex';
@@ -452,6 +454,7 @@ const CATEGORY_FILTERS = [
   { k: 'maitre ligue', l: '👑 Ligue/Maître',c: '#fbbf24' },
   { k: 'prof',         l: '🎓 Professeur', c: '#f472b6' },
   { k: 'pokedex',      l: '📖 Pokédex',    c: '#fb923c' },
+  { k: 'maitrise',     l: '🥋 Maîtrises',   c: '#e9d5ff' },
 ];
 
 

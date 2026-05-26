@@ -285,7 +285,25 @@ export const PROFESSOR_MAP = {
   'champ-xy': 'sycamore',
   'champ-sm': 'kukui',
   'champ-swsh': 'sonia',
-  'champ-sv': 'sada'
+  'champ-sv': 'sada',
+  'recherche-kanto-50': 'oak',
+  'recherche-kanto-100': 'oak',
+  'recherche-johto-50': 'elm',
+  'recherche-johto-100': 'elm',
+  'recherche-hoenn-50': 'birch',
+  'recherche-hoenn-100': 'birch',
+  'recherche-sinnoh-50': 'rowan',
+  'recherche-sinnoh-100': 'rowan',
+  'recherche-unys-50': 'juniper',
+  'recherche-unys-100': 'juniper',
+  'recherche-kalos-50': 'sycamore',
+  'recherche-kalos-100': 'sycamore',
+  'recherche-alola-50': 'kukui',
+  'recherche-alola-100': 'kukui',
+  'recherche-galar-50': 'magnolia',
+  'recherche-galar-100': 'magnolia',
+  'recherche-paldea-50': 'sada',
+  'recherche-paldea-100': 'sada'
 };
 
 // Remove accents and normalize strings for matching

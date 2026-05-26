@@ -75,6 +75,7 @@ export default function DashboardScreen({ col, setCol, theme }) {
       if (ach.type === 'starters') return 'starters';
       if (ach.type === 'prof') return 'prof';
       if (ach.type === 'gyms') return 'gyms';
+      if (ach.type === 'maitrise') return 'maitrise';
       if (ach.type === 'meta') return 'meta';
       if (ach.type === 'stade') return 'stade';
       if (ach.type === 'special') return 'special';
@@ -85,6 +86,7 @@ export default function DashboardScreen({ col, setCol, theme }) {
       starters: { cur: 0, total: 0, label: 'Starters complets', icon: '🌱' },
       prof: { cur: 0, total: 0, label: 'Félicitations Profs', icon: '🎓' },
       gyms: { cur: 0, total: 0, label: 'Succès Arènes', icon: '🏅' },
+      maitrise: { cur: 0, total: 0, label: 'Maîtrises de Type', icon: '🥋' },
       meta: { cur: 0, total: 0, label: 'Meta-Badges Pokédex', icon: '📖' },
       stade: { cur: 0, total: 0, label: 'Milestones', icon: '💯' },
       special: { cur: 0, total: 0, label: 'Succès Spéciaux', icon: '👑' },
@@ -311,7 +313,8 @@ export default function DashboardScreen({ col, setCol, theme }) {
                               cat.key === 'prof' ? '#f472b6' :
                               cat.key === 'gyms' ? '#38bdf8' :
                               cat.key === 'meta' ? '#fb923c' :
-                              cat.key === 'stade' ? '#22d3ee' : '#a78bfa';
+                              cat.key === 'stade' ? '#22d3ee' :
+                              cat.key === 'maitrise' ? '#e9d5ff' : '#a78bfa';
 
                 const pct = cat.total ? Math.round((cat.cur / cat.total) * 100) : 0;
 
