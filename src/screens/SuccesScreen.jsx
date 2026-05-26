@@ -77,37 +77,30 @@ function BadgeDetail({ badge, col, theme, onBack }) {
             overflow: 'hidden',
             boxShadow: isComplete ? `0 0 16px ${hexToRgba(bc, 0.25)}` : 'none'
           }}>
-            {isComplete ? (
-              <img 
-                src={trainerImgUrl} 
-                alt={badge.name} 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain'
-                }} 
-              />
-            ) : (
-              <span style={{ fontSize: 30, color: 'rgba(255,255,255,.2)' }}>🔒</span>
-            )}
+            <img 
+              src={trainerImgUrl} 
+              alt={badge.name} 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                filter: isComplete ? 'none' : 'grayscale(100%) opacity(.35)'
+              }} 
+            />
           </div>
 
-          <div className={isComplete ? '' : 'blur-locked'}
-            style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: '#fff' }}>
             {badge.name}
           </div>
-          <div className={isComplete ? '' : 'blur-locked'}
-            style={{ fontSize: 12, color: 'rgba(255,255,255,.40)', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,.40)', marginTop: 4 }}>
             {badge.role}
           </div>
-          <div className={isComplete ? '' : 'blur-locked'}
-            style={{ fontSize: 11, color: 'rgba(255,255,255,.28)', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.28)', marginTop: 2 }}>
             📍 {badge.city} · {badge.place}
           </div>
 
           {badge.history && (
-            <p className={isComplete ? '' : 'blur-locked'}
-              style={{
+            <p style={{
                 color: 'rgba(255,255,255,.50)', fontSize: 12,
                 lineHeight: 1.6, margin: '12px auto 0', maxWidth: 290,
                 padding: '10px 14px',
@@ -129,18 +122,18 @@ function BadgeDetail({ badge, col, theme, onBack }) {
             border: `1px solid ${isComplete ? hexToRgba(bc, 0.42) : 'rgba(255,255,255,.12)'}`,
             borderRadius: 24, padding: '10px 20px'
           }}>
-            {isComplete ? (
-              <img 
-                src={badgeImgUrl || trainerImgUrl} 
-                alt="" 
-                style={{ width: 28, height: 28, objectFit: 'contain' }} 
-              />
-            ) : (
-              <span style={{ fontSize: 20 }}>🔒</span>
-            )}
+            <img 
+              src={badgeImgUrl || trainerImgUrl} 
+              alt="" 
+              style={{
+                width: 28,
+                height: 28,
+                objectFit: 'contain',
+                filter: isComplete ? 'none' : 'grayscale(100%) opacity(.35)'
+              }} 
+            />
             <div>
-              <div className={isComplete ? '' : 'blur-locked'}
-                style={{ fontSize: 13, fontWeight: 700, color: isComplete ? bc : 'rgba(255,255,255,.4)' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: isComplete ? bc : 'rgba(255,255,255,.4)' }}>
                 {badge.badgeName || badge.role}
               </div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,.32)' }}>
@@ -314,19 +307,16 @@ function BadgeGridCard({ badge, col, onClick }) {
             overflow: 'hidden',
             flexShrink: 0
           }}>
-            {isComplete ? (
-              <img 
-                src={trainerImgUrl} 
-                alt="" 
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain'
-                }} 
-              />
-            ) : (
-              <span style={{ fontSize: 16, color: 'rgba(255,255,255,.2)' }}>🔒</span>
-            )}
+            <img 
+              src={trainerImgUrl} 
+              alt="" 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                filter: isComplete ? 'none' : 'grayscale(100%) opacity(.35)'
+              }} 
+            />
           </div>
 
           <div style={{ textAlign: 'right' }}>
@@ -341,26 +331,23 @@ function BadgeGridCard({ badge, col, onClick }) {
         </div>
 
         {/* Nom dresseur */}
-        <div className={isComplete ? '' : 'blur-locked'}
-          style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 1 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 1 }}>
           {badge.name}
         </div>
 
         {/* Rôle */}
-        <div className={isComplete ? '' : 'blur-locked'}
-          style={{ fontSize: 10, color: 'rgba(255,255,255,.38)', marginBottom: 2 }}>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.38)', marginBottom: 2 }}>
           {badge.role}
         </div>
 
         {/* Ville */}
-        <div className={isComplete ? '' : 'blur-locked'}
-          style={{ fontSize: 9, color: 'rgba(255,255,255,.26)', marginBottom: hasGymBadge ? 4 : 6 }}>
+        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.26)', marginBottom: hasGymBadge ? 4 : 6 }}>
           📍 {badge.city}
         </div>
 
         {/* Nom du badge (si arène) */}
         {hasGymBadge && (
-          <div className={isComplete ? '' : 'blur-locked'} style={{ marginBottom: 6 }}>
+          <div style={{ marginBottom: 6 }}>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
               fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
@@ -368,8 +355,17 @@ function BadgeGridCard({ badge, col, onClick }) {
               border: `1px solid ${isComplete ? hexToRgba(bc, 0.38) : 'rgba(255,255,255,.10)'}`,
               color: isComplete ? bc : 'rgba(255,255,255,.24)'
             }}>
-              {isComplete && badgeImgUrl ? (
-                <img src={badgeImgUrl} alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
+              {badgeImgUrl ? (
+                <img 
+                  src={badgeImgUrl} 
+                  alt="" 
+                  style={{
+                    width: 12,
+                    height: 12,
+                    objectFit: 'contain',
+                    filter: isComplete ? 'none' : 'grayscale(100%) opacity(.35)'
+                  }} 
+                />
               ) : (
                 <span>🏅</span>
               )}
@@ -461,13 +457,19 @@ const CATEGORY_FILTERS = [
 // ── Carte succès grille ────────────────────────────────────────────────────
 function AchievementGridCard({ ach, col }) {
   const isOk = ach.check(col);
-  const cl = ach.color;
-  const deps = ach.id === 'grand-maitre'
+  const isSecret = ach.secret && !isOk;
+
+  const cl = isSecret ? '#4b5563' : ach.color;
+  const label = isSecret ? 'Succès Mystère' : ach.label;
+  const desc = isSecret ? 'Débloquez ce succès mystère pour découvrir son secret.' : ach.desc;
+  const icon = isSecret ? '🔒' : ach.icon;
+
+  const deps = (ach.id === 'grand-maitre' && !isSecret)
     ? ACHIEVEMENTS.filter(a => a.id.startsWith('gyms-'))
     : [];
 
-  const prg = ach.progress ? ach.progress(col) : null;
-  const profKey = PROFESSOR_MAP[ach.id];
+  const prg = (ach.progress && !isSecret) ? ach.progress(col) : null;
+  const profKey = !isSecret ? PROFESSOR_MAP[ach.id] : null;
   const profUrl = profKey ? `https://play.pokemonshowdown.com/sprites/trainers/${profKey}.png` : null;
 
   return (
@@ -505,7 +507,7 @@ function AchievementGridCard({ ach, col }) {
                 }} 
               />
             ) : (
-              isOk ? ach.icon : '🔒'
+              isOk ? icon : (isSecret ? '🔒' : icon)
             )}
           </div>
           <div style={{
@@ -520,10 +522,10 @@ function AchievementGridCard({ ach, col }) {
         </div>
 
         <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
-          {ach.label}
+          {label}
         </div>
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,.38)', lineHeight: 1.4, flex: 1, marginBottom: (deps.length || prg) ? 10 : 0 }}>
-          {ach.desc}
+          {desc}
         </div>
 
         {/* Barre de progression pour succès */}
