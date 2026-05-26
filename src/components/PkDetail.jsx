@@ -106,7 +106,8 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
       inset: 0,
       overflow: 'hidden',
       animation: 'slideIn .26s ease',
-      background: theme.bg
+      background: theme.bg,
+      zIndex: 10
     }}>
       <button
         onClick={onBack}

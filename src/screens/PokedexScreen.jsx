@@ -41,20 +41,7 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
     };
   }, [base, col]);
 
-  if (sel) {
-    return (
-      <PkDetail
-        p={sel}
-        status={col[sel.id]}
-        col={col}
-        onBack={() => setSel(null)}
-        onSet={(s) => setCol(c => ({ ...c, [sel.id]: s }))}
-        onNavigate={(nextP) => setSel(nextP)}
-        theme={theme}
-        getLoc={getLoc}
-      />
-    );
-  }
+
 
   const FLTS = [
     { k: 'tous', l: 'Tous', c: theme.accent },
@@ -256,6 +243,29 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
           </div>
         )}
       </div>
+
+      {/* Detail Overlay */}
+      {sel && (
+        <PkDetail
+          p={sel}
+          status={col[sel.id]}
+          col={col}
+          onBack={() => {
+            const lastId = sel.id;
+            setSel(null);
+            setTimeout(() => {
+              const el = document.getElementById(`pk-card-${lastId}`);
+              if (el) {
+                el.scrollIntoView({ block: 'start', behavior: 'auto' });
+              }
+            }, 0);
+          }}
+          onSet={(s) => setCol(c => ({ ...c, [sel.id]: s }))}
+          onNavigate={(nextP) => setSel(nextP)}
+          theme={theme}
+          getLoc={getLoc}
+        />
+      )}
     </div>
   );
 }

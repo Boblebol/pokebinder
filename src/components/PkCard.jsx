@@ -10,6 +10,7 @@ export default function PkCard({ p, status, onTap, onStatusCycle }) {
 
   return (
     <div
+      id={`pk-card-${p.id}`}
       onClick={() => onTap(p)}
       style={{
         background: 'rgba(255, 255, 255, 0.05)',
