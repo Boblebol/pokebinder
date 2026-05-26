@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { hexToRgba } from '../utils/color.js';
 
-export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThemeKey, themes, onReset, swReg, showUpdate }) {
+export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThemeKey, themes, onReset, swReg, showUpdate, onReplayTour }) {
   const [localCfg, setLocalCfg] = useState(() => ({ ...bcfg }));
   const [okk, setOkk] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -256,7 +256,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,.45)' }}>Version installée</span>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: "'Press Start 2P', monospace" }}>
-                v1.2.0
+                v2.0.0
               </span>
             </div>
             
@@ -357,6 +357,30 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
           }}
         >
           {okk ? '✓ Placement recalculé !' : '🔄 Recalculer le placement'}
+        </button>
+
+        {/* Replay Tour Button */}
+        <button
+          onClick={onReplayTour}
+          style={{
+            width: '100%',
+            padding: 16,
+            borderRadius: 12,
+            border: '1px solid rgba(255,255,255,.12)',
+            background: 'rgba(255,255,255,.04)',
+            color: 'rgba(255,255,255,.75)',
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 700,
+            fontFamily: 'inherit',
+            transition: 'all 0.3s',
+            marginBottom: 10
+          }}
+          onPointerDown={ev => { ev.currentTarget.style.background = 'rgba(255,255,255,.08)'; }}
+          onPointerUp={ev => { ev.currentTarget.style.background = 'rgba(255,255,255,.04)'; }}
+          onPointerLeave={ev => { ev.currentTarget.style.background = 'rgba(255,255,255,.04)'; }}
+        >
+          ✨ Rejouer le guide d'accueil
         </button>
 
         {/* Reset application button */}

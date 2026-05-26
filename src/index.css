@@ -265,6 +265,13 @@ input[type=range] {
     transform: scale(1.05);
   }
 }
-
-
-
+@keyframes tourSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

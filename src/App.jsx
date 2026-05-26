@@ -5,6 +5,7 @@ import SuccesScreen from './screens/SuccesScreen.jsx';
 import BindersScreen from './screens/BindersScreen.jsx';
 import DashboardScreen from './screens/DashboardScreen.jsx';
 import SettingsScreen from './screens/SettingsScreen.jsx';
+import ProductTour, { TOUR_STEPS } from './components/ProductTour.jsx';
 import { INITCOL, BCFG, PLIST, BADGES, ACHIEVEMENTS } from './data/index.js';
 import { computeSnap } from './utils/binder.js';
 import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP } from './utils/assets.js';
@@ -35,6 +36,7 @@ export default function App() {
   const [tweaks, setTweaks] = useState(false);
   const [swReg, setSwReg] = useState(null);
   const [showUpdate, setShowUpdate] = useState(false);
+  const [tourStep, setTourStep] = useState(null);
 
   // Achievement/Badge Unlock Toast States
   const [activeToast, setActiveToast] = useState(null);
@@ -105,6 +107,7 @@ export default function App() {
       localStorage.removeItem('pokeclasseur_collection');
       localStorage.removeItem('pokeclasseur_bcfg');
       localStorage.removeItem('pokeclasseur_theme');
+      localStorage.removeItem('pokeclasseur_tour_completed');
       
       const cleanCol = {};
       PLIST.forEach(p => {
@@ -114,9 +117,32 @@ export default function App() {
       
       setBcfg({ ...BCFG });
       setTk('shadow');
+      setTourStep(0);
       alert("✓ L'application a été réinitialisée avec succès !");
     }
   }, []);
+
+  // 4b. Product Tour auto-trigger for empty collections
+  const isColEmpty = useMemo(() => {
+    return Object.values(col).every(v => v === null);
+  }, [col]);
+
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('pokeclasseur_tour_completed') === 'true';
+    if (isColEmpty && !tourCompleted && tourStep === null) {
+      const timer = setTimeout(() => {
+        setTourStep(0);
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [isColEmpty, tourStep]);
+
+  // Synchronize active tab with the guided tour step
+  useEffect(() => {
+    if (tourStep !== null && TOUR_STEPS[tourStep]) {
+      setTab(TOUR_STEPS[tourStep].tab);
+    }
+  }, [tourStep]);
 
   // PWA Service Worker Registration & Update Detection
   useEffect(() => {
@@ -312,6 +338,10 @@ export default function App() {
                 onReset={handleReset}
                 swReg={swReg}
                 showUpdate={showUpdate}
+                onReplayTour={() => {
+                  setTab('pokedex');
+                  setTourStep(0);
+                }}
               />
             )}
           </div>
@@ -524,6 +554,31 @@ export default function App() {
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Guided Onboarding Product Tour */}
+          {tourStep !== null && (
+            <ProductTour
+              step={tourStep}
+              onNext={() => {
+                if (tourStep < TOUR_STEPS.length - 1) {
+                  setTourStep(prev => prev + 1);
+                } else {
+                  localStorage.setItem('pokeclasseur_tour_completed', 'true');
+                  setTourStep(null);
+                }
+              }}
+              onPrev={() => {
+                if (tourStep > 0) {
+                  setTourStep(prev => prev - 1);
+                }
+              }}
+              onClose={() => {
+                localStorage.setItem('pokeclasseur_tour_completed', 'true');
+                setTourStep(null);
+              }}
+              theme={theme}
+            />
           )}
         </div>
       </div>
