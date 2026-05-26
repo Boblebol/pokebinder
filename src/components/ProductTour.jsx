@@ -42,12 +42,15 @@ export default function ProductTour({ step, onNext, onPrev, onClose, theme }) {
 
   return (
     <>
-      {/* Dark backdrop overlay to dim screen contents */}
+      {/* Dark backdrop overlay to dim screen contents (excluding TabBar) */}
       <div 
         onClick={onClose}
         style={{
           position: 'absolute',
-          inset: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 82,
           background: 'rgba(0,0,0,0.5)',
           backdropFilter: 'blur(2px)',
           WebkitBackdropFilter: 'blur(2px)',
