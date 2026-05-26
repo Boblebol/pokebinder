@@ -7,6 +7,7 @@ import DashboardScreen from './screens/DashboardScreen.jsx';
 import SettingsScreen from './screens/SettingsScreen.jsx';
 import { INITCOL, BCFG, PLIST, BADGES, ACHIEVEMENTS } from './data/index.js';
 import { computeSnap } from './utils/binder.js';
+import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP } from './utils/assets.js';
 
 const THEMES = {
   shadow: {
@@ -181,12 +182,16 @@ export default function App() {
       const badgeId = newlyUnlockedBadges[0];
       const badgeObj = BADGES.find((b) => b.id === badgeId);
       if (badgeObj) {
+        const imageUrl = badgeObj.badgeName 
+          ? getBadgeImageUrl(badgeObj.badgeName) 
+          : getTrainerAvatarUrl(badgeObj.name, badgeObj.id);
         setActiveToast({
           type: 'badge',
           id: badgeId,
           title: 'Badge Débloqué ! 🏅',
           subtitle: `${badgeObj.badgeName || 'Badge'} · ${badgeObj.name}`,
           icon: '🏅',
+          imageUrl,
           color: badgeObj.bc || '#38bdf8',
           badge: badgeObj
         });
@@ -195,12 +200,15 @@ export default function App() {
       const achId = newlyUnlockedAchs[0];
       const achObj = ACHIEVEMENTS.find((a) => a.id === achId);
       if (achObj) {
+        const profKey = PROFESSOR_MAP[achId];
+        const imageUrl = profKey ? `https://play.pokemonshowdown.com/sprites/trainers/${profKey}.png` : null;
         setActiveToast({
           type: 'achievement',
           id: achId,
           title: 'Succès Débloqué ! 🏆',
           subtitle: achObj.label,
           icon: achObj.icon || '🏆',
+          imageUrl,
           color: achObj.color || '#fbbf24',
           achievement: achObj
         });
@@ -423,9 +431,22 @@ export default function App() {
                   fontSize: 22,
                   flexShrink: 0,
                   boxShadow: `0 0 8px ${activeToast.color}33`,
-                  animation: 'pulseGlow 2s infinite'
+                  animation: 'pulseGlow 2s infinite',
+                  overflow: 'hidden'
                 }}>
-                  {activeToast.icon}
+                  {activeToast.imageUrl ? (
+                    <img 
+                      src={activeToast.imageUrl} 
+                      alt="" 
+                      style={{
+                        width: activeToast.type === 'badge' && activeToast.badge?.badgeName ? '68%' : '100%',
+                        height: activeToast.type === 'badge' && activeToast.badge?.badgeName ? '68%' : '100%',
+                        objectFit: 'contain'
+                      }} 
+                    />
+                  ) : (
+                    activeToast.icon
+                  )}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: activeToast.color, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>

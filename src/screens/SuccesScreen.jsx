@@ -3,6 +3,7 @@ import PkImg from '../components/PkImg.jsx';
 import { BADGES } from '../data/badges.js';
 import { ACHIEVEMENTS, PKM, STATS, TYPE_COLORS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
+import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP } from '../utils/assets.js';
 
 // ── Config régions ─────────────────────────────────────────────────────────
 const REGION_LABELS = {
@@ -36,6 +37,10 @@ function BadgeDetail({ badge, col, theme, onBack }) {
   const { ids, owned, isComplete } = encUnlock(enc, col);
   const bc = badge.bc;
 
+  const imgUrl = badge.badgeName 
+    ? getBadgeImageUrl(badge.badgeName) 
+    : getTrainerAvatarUrl(badge.name, badge.id);
+
   return (
     <div style={{
       position: 'absolute', inset: 0,
@@ -64,13 +69,28 @@ function BadgeDetail({ badge, col, theme, onBack }) {
         <div style={{ textAlign: 'center', marginTop: 20 }}>
           <div style={{
             width: 80, height: 80, borderRadius: '50%',
-            background: `linear-gradient(135deg, ${hexToRgba(bc, 0.30)}, ${hexToRgba(bc, 0.14)})`,
-            border: `3px solid ${hexToRgba(bc, 0.52)}`,
+            background: isComplete 
+              ? `linear-gradient(135deg, ${hexToRgba(bc, 0.20)}, ${hexToRgba(bc, 0.08)})` 
+              : 'rgba(255,255,255,.05)',
+            border: `3px solid ${isComplete ? hexToRgba(bc, 0.52) : 'rgba(255,255,255,.12)'}`,
             margin: '0 auto 14px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 36
+            overflow: 'hidden',
+            boxShadow: isComplete ? `0 0 16px ${hexToRgba(bc, 0.25)}` : 'none'
           }}>
-            {isComplete ? '🏅' : '🔒'}
+            {isComplete ? (
+              <img 
+                src={imgUrl} 
+                alt={badge.badgeName || badge.name} 
+                style={{
+                  width: badge.badgeName ? '68%' : '100%',
+                  height: badge.badgeName ? '68%' : '100%',
+                  objectFit: 'contain'
+                }} 
+              />
+            ) : (
+              <span style={{ fontSize: 30, color: 'rgba(255,255,255,.2)' }}>🔒</span>
+            )}
           </div>
 
           <div className={isComplete ? '' : 'blur-locked'}
@@ -97,7 +117,7 @@ function BadgeDetail({ badge, col, theme, onBack }) {
                 borderLeft: `3px solid ${hexToRgba(bc, 0.45)}`,
                 textAlign: 'left'
               }}>
-              {badge.history}
+                {badge.history}
             </p>
           )}
         </div>
@@ -110,7 +130,15 @@ function BadgeDetail({ badge, col, theme, onBack }) {
             border: `1px solid ${isComplete ? hexToRgba(bc, 0.42) : 'rgba(255,255,255,.12)'}`,
             borderRadius: 24, padding: '10px 20px'
           }}>
-            <span style={{ fontSize: 24 }}>{isComplete ? '🏅' : '🔒'}</span>
+            {isComplete ? (
+              <img 
+                src={imgUrl} 
+                alt="" 
+                style={{ width: 28, height: 28, objectFit: 'contain' }} 
+              />
+            ) : (
+              <span style={{ fontSize: 20 }}>🔒</span>
+            )}
             <div>
               <div className={isComplete ? '' : 'blur-locked'}
                 style={{ fontSize: 13, fontWeight: 700, color: isComplete ? bc : 'rgba(255,255,255,.4)' }}>
@@ -244,12 +272,14 @@ function BadgeDetail({ badge, col, theme, onBack }) {
   );
 }
 
-// ── Carte grille 2 colonnes ────────────────────────────────────────────────
 function BadgeGridCard({ badge, col, onClick }) {
   const enc = badge.encounters[0];
   const { ids, owned, isComplete } = encUnlock(enc, col);
   const bc = badge.bc;
   const hasGymBadge = !!badge.badgeName;
+  const imgUrl = badge.badgeName 
+    ? getBadgeImageUrl(badge.badgeName) 
+    : getTrainerAvatarUrl(badge.name, badge.id);
 
   return (
     <div
@@ -273,13 +303,32 @@ function BadgeGridCard({ badge, col, onClick }) {
         {/* Ligne haut : icône + compteur */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <div style={{
-            width: 44, height: 44, borderRadius: '50%',
-            background: isComplete ? hexToRgba(bc, 0.18) : 'rgba(255,255,255,.07)',
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: isComplete 
+              ? `linear-gradient(135deg, ${hexToRgba(bc, 0.15)}, ${hexToRgba(bc, 0.05)})` 
+              : 'rgba(255,255,255,.06)',
             border: `2px solid ${isComplete ? hexToRgba(bc, 0.48) : 'rgba(255,255,255,.12)'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, flexShrink: 0
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0
           }}>
-            {isComplete ? '🏅' : '🔒'}
+            {isComplete ? (
+              <img 
+                src={imgUrl} 
+                alt="" 
+                style={{
+                  width: badge.badgeName ? '68%' : '100%',
+                  height: badge.badgeName ? '68%' : '100%',
+                  objectFit: 'contain'
+                }} 
+              />
+            ) : (
+              <span style={{ fontSize: 16, color: 'rgba(255,255,255,.2)' }}>🔒</span>
+            )}
           </div>
 
           <div style={{ textAlign: 'right' }}>
@@ -401,6 +450,7 @@ const CATEGORY_FILTERS = [
   { k: 'pokedex',      l: '📖 Pokédex',    c: '#fb923c' },
 ];
 
+
 // ── Carte succès grille ────────────────────────────────────────────────────
 function AchievementGridCard({ ach, col }) {
   const isOk = ach.check(col);
@@ -410,6 +460,8 @@ function AchievementGridCard({ ach, col }) {
     : [];
 
   const prg = ach.progress ? ach.progress(col) : null;
+  const profKey = PROFESSOR_MAP[ach.id];
+  const profUrl = profKey ? `https://play.pokemonshowdown.com/sprites/trainers/${profKey}.png` : null;
 
   return (
     <div style={{
@@ -423,13 +475,31 @@ function AchievementGridCard({ ach, col }) {
       <div style={{ padding: '12px 14px 10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
           <div style={{
-            width: 44, height: 44, borderRadius: '50%',
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
             background: isOk ? hexToRgba(cl, 0.18) : 'rgba(255,255,255,.07)',
             border: `2px solid ${isOk ? hexToRgba(cl, 0.45) : 'rgba(255,255,255,.12)'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
             fontSize: 20
           }}>
-            {isOk ? ach.icon : '🔒'}
+            {profUrl ? (
+              <img 
+                src={profUrl} 
+                alt="" 
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  filter: isOk ? 'none' : 'grayscale(100%) opacity(.28)'
+                }} 
+              />
+            ) : (
+              isOk ? ach.icon : '🔒'
+            )}
           </div>
           <div style={{
             fontSize: 9, fontWeight: 700,
