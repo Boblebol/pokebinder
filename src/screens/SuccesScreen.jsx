@@ -37,9 +37,8 @@ function BadgeDetail({ badge, col, theme, onBack }) {
   const { ids, owned, isComplete } = encUnlock(enc, col);
   const bc = badge.bc;
 
-  const imgUrl = badge.badgeName 
-    ? getBadgeImageUrl(badge.badgeName) 
-    : getTrainerAvatarUrl(badge.name, badge.id);
+  const trainerImgUrl = getTrainerAvatarUrl(badge.name, badge.id);
+  const badgeImgUrl = badge.badgeName ? getBadgeImageUrl(badge.badgeName) : null;
 
   return (
     <div style={{
@@ -80,11 +79,11 @@ function BadgeDetail({ badge, col, theme, onBack }) {
           }}>
             {isComplete ? (
               <img 
-                src={imgUrl} 
-                alt={badge.badgeName || badge.name} 
+                src={trainerImgUrl} 
+                alt={badge.name} 
                 style={{
-                  width: badge.badgeName ? '68%' : '100%',
-                  height: badge.badgeName ? '68%' : '100%',
+                  width: '100%',
+                  height: '100%',
                   objectFit: 'contain'
                 }} 
               />
@@ -132,7 +131,7 @@ function BadgeDetail({ badge, col, theme, onBack }) {
           }}>
             {isComplete ? (
               <img 
-                src={imgUrl} 
+                src={badgeImgUrl || trainerImgUrl} 
                 alt="" 
                 style={{ width: 28, height: 28, objectFit: 'contain' }} 
               />
@@ -277,9 +276,8 @@ function BadgeGridCard({ badge, col, onClick }) {
   const { ids, owned, isComplete } = encUnlock(enc, col);
   const bc = badge.bc;
   const hasGymBadge = !!badge.badgeName;
-  const imgUrl = badge.badgeName 
-    ? getBadgeImageUrl(badge.badgeName) 
-    : getTrainerAvatarUrl(badge.name, badge.id);
+  const trainerImgUrl = getTrainerAvatarUrl(badge.name, badge.id);
+  const badgeImgUrl = badge.badgeName ? getBadgeImageUrl(badge.badgeName) : null;
 
   return (
     <div
@@ -318,11 +316,11 @@ function BadgeGridCard({ badge, col, onClick }) {
           }}>
             {isComplete ? (
               <img 
-                src={imgUrl} 
+                src={trainerImgUrl} 
                 alt="" 
                 style={{
-                  width: badge.badgeName ? '68%' : '100%',
-                  height: badge.badgeName ? '68%' : '100%',
+                  width: '100%',
+                  height: '100%',
                   objectFit: 'contain'
                 }} 
               />
@@ -364,12 +362,18 @@ function BadgeGridCard({ badge, col, onClick }) {
         {hasGymBadge && (
           <div className={isComplete ? '' : 'blur-locked'} style={{ marginBottom: 6 }}>
             <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 5,
               fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
               background: isComplete ? hexToRgba(bc, 0.20) : 'rgba(255,255,255,.06)',
               border: `1px solid ${isComplete ? hexToRgba(bc, 0.38) : 'rgba(255,255,255,.10)'}`,
               color: isComplete ? bc : 'rgba(255,255,255,.24)'
             }}>
-              🏅 {badge.badgeName}
+              {isComplete && badgeImgUrl ? (
+                <img src={badgeImgUrl} alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
+              ) : (
+                <span>🏅</span>
+              )}
+              {badge.badgeName}
             </span>
           </div>
         )}

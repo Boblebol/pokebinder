@@ -182,9 +182,8 @@ export default function App() {
       const badgeId = newlyUnlockedBadges[0];
       const badgeObj = BADGES.find((b) => b.id === badgeId);
       if (badgeObj) {
-        const imageUrl = badgeObj.badgeName 
-          ? getBadgeImageUrl(badgeObj.badgeName) 
-          : getTrainerAvatarUrl(badgeObj.name, badgeObj.id);
+        const imageUrl = getTrainerAvatarUrl(badgeObj.name, badgeObj.id);
+        const badgeImageUrl = badgeObj.badgeName ? getBadgeImageUrl(badgeObj.badgeName) : null;
         setActiveToast({
           type: 'badge',
           id: badgeId,
@@ -192,6 +191,7 @@ export default function App() {
           subtitle: `${badgeObj.badgeName || 'Badge'} · ${badgeObj.name}`,
           icon: '🏅',
           imageUrl,
+          badgeImageUrl,
           color: badgeObj.bc || '#38bdf8',
           badge: badgeObj
         });
@@ -439,8 +439,8 @@ export default function App() {
                       src={activeToast.imageUrl} 
                       alt="" 
                       style={{
-                        width: activeToast.type === 'badge' && activeToast.badge?.badgeName ? '68%' : '100%',
-                        height: activeToast.type === 'badge' && activeToast.badge?.badgeName ? '68%' : '100%',
+                        width: '100%',
+                        height: '100%',
                         objectFit: 'contain'
                       }} 
                     />
@@ -452,8 +452,21 @@ export default function App() {
                   <div style={{ color: activeToast.color, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
                     {activeToast.title}
                   </div>
-                  <div style={{ color: '#fff', fontSize: 12, fontWeight: 600, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {activeToast.subtitle}
+                  <div style={{ 
+                    color: '#fff', 
+                    fontSize: 12, 
+                    fontWeight: 600, 
+                    marginTop: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 6 
+                  }}>
+                    {activeToast.badgeImageUrl && (
+                      <img src={activeToast.badgeImageUrl} alt="" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                    )}
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {activeToast.subtitle}
+                    </span>
                   </div>
                 </div>
               </div>
