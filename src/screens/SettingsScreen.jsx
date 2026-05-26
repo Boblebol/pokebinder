@@ -7,6 +7,15 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
   const [checking, setChecking] = useState(false);
   const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
   const [lastCheck, setLastCheck] = useState(() => localStorage.getItem('pokeclasseur_last_update_check'));
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  useEffect(() => {
+    const checkIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const checkStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    setIsIOS(checkIOS);
+    setIsStandalone(!!checkStandalone);
+  }, []);
 
   useEffect(() => {
     const goOnline = () => setIsOffline(false);
@@ -256,7 +265,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,.45)' }}>Version installée</span>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: "'Press Start 2P', monospace" }}>
-                v2.0.0
+                v2.0.1
               </span>
             </div>
             
@@ -337,6 +346,41 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
             </button>
           )}
         </div>
+
+        {/* iOS Installation Panel */}
+        {isIOS && !isStandalone && (
+          <div style={{
+            background: 'rgba(255,255,255,.05)',
+            borderRadius: 12,
+            border: `1.5px solid ${theme.accent}44`,
+            marginBottom: 16,
+            padding: '12px 14px 14px',
+            boxShadow: `0 0 15px ${theme.accent}0a`
+          }}>
+            <div style={{ fontSize: 10, color: theme.accent, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>
+              Installer sur iPhone / iPad
+            </div>
+            
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', lineHeight: 1.5, margin: '0 0 12px 0' }}>
+              Ajoutez l'application sur votre écran d'accueil pour l'utiliser en plein écran (sans les barres de navigation du navigateur) :
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 12, color: 'rgba(255,255,255,.85)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>1️⃣</span>
+                <span>Appuyez sur le bouton <strong>Partager</strong> 📤 (icône carré + flèche en bas de Safari).</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>2️⃣</span>
+                <span>Faites défiler le menu et sélectionnez <strong>Sur l'écran d'accueil</strong> 📲.</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>3️⃣</span>
+                <span>Cliquez sur <strong>Ajouter</strong> en haut à droite.</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Recalculate button */}
         <button
