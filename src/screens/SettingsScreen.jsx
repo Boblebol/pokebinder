@@ -1,9 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { hexToRgba } from '../utils/color.js';
 
-export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThemeKey, themes, onReset }) {
+export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThemeKey, themes, onReset, swReg, showUpdate }) {
   const [localCfg, setLocalCfg] = useState(() => ({ ...bcfg }));
   const [okk, setOkk] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
+  const [lastCheck, setLastCheck] = useState(() => localStorage.getItem('pokeclasseur_last_update_check'));
+
+  useEffect(() => {
+    const goOnline = () => setIsOffline(false);
+    const goOffline = () => setIsOffline(true);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
+
+  const formatLastCheck = (isoString) => {
+    if (!isoString) return 'Jamais';
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return 'Jamais';
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${day}/${month}/${year} à ${hours}:${minutes}`;
+    } catch (e) {
+      return 'Jamais';
+    }
+  };
+
+  const handleCheckUpdate = () => {
+    if (!swReg) {
+      setChecking(true);
+      setTimeout(() => {
+        setChecking(false);
+        alert("La détection de mise à jour n'est pas active dans cet environnement (ex: développement local).");
+      }, 800);
+      return;
+    }
+    setChecking(true);
+    swReg.update()
+      .then((registration) => {
+        setTimeout(() => {
+          setChecking(false);
+          const nowStr = new Date().toISOString();
+          localStorage.setItem('pokeclasseur_last_update_check', nowStr);
+          setLastCheck(nowStr);
+          if (registration.waiting) {
+            alert("Une mise à jour est disponible et prête à être installée !");
+          } else {
+            alert("Votre application est déjà à jour !");
+          }
+        }, 1200);
+      })
+      .catch((err) => {
+        setChecking(false);
+        console.error(err);
+        alert("Impossible de vérifier les mises à jour. Vérifiez votre connexion internet.");
+      });
+  };
+
+  const handleInstallUpdate = () => {
+    if (swReg && swReg.waiting) {
+      swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      window.location.reload();
+    }
+  };
+
+  const hasUpdate = !!(showUpdate || (swReg && swReg.waiting));
 
   const upd = (k, v) => {
     setLocalCfg(prev => ({ ...prev, [k]: v }));
@@ -167,6 +238,104 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
               );
             })}
           </div>
+        </div>
+
+        {/* PWA Updates Panel */}
+        <div style={{
+          background: 'rgba(255,255,255,.05)',
+          borderRadius: 12,
+          border: '1px solid rgba(255,255,255,.07)',
+          marginBottom: 16,
+          padding: '12px 14px 14px'
+        }}>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>
+            Mise à jour (PWA)
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.45)' }}>Version installée</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: "'Press Start 2P', monospace" }}>
+                v1.1.9
+              </span>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.45)' }}>État</span>
+              <span style={{ 
+                fontSize: 12, 
+                fontWeight: 700, 
+                color: isOffline ? '#ef4444' : (hasUpdate ? theme.accent : '#22c55e'),
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5
+              }}>
+                <span style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: isOffline ? '#ef4444' : (hasUpdate ? theme.accent : '#22c55e'),
+                  display: 'inline-block'
+                }} />
+                {isOffline ? 'Hors ligne' : (hasUpdate ? 'Mise à jour prête' : 'À jour')}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)' }}>
+                Dernière vérification : {formatLastCheck(lastCheck)}
+              </span>
+            </div>
+          </div>
+
+          {hasUpdate ? (
+            <button
+              onClick={handleInstallUpdate}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: 'none',
+                background: theme.accent,
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 700,
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                boxShadow: `0 4px 12px ${theme.accent}30`
+              }}
+            >
+              ✨ Installer la mise à jour
+            </button>
+          ) : (
+            <button
+              onClick={handleCheckUpdate}
+              disabled={checking || isOffline}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px solid rgba(255,255,255,.12)',
+                background: 'rgba(255,255,255,.04)',
+                color: (checking || isOffline) ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.7)',
+                cursor: (checking || isOffline) ? 'default' : 'pointer',
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 0.2s'
+              }}
+            >
+              {checking ? '🔄 Vérification...' : '🔍 Rechercher une mise à jour'}
+            </button>
+          )}
         </div>
 
         {/* Recalculate button */}

@@ -124,6 +124,7 @@ export default function App() {
       navigator.serviceWorker.register('/sw.js')
         .then((reg) => {
           setSwReg(reg);
+          localStorage.setItem('pokeclasseur_last_update_check', new Date().toISOString());
 
           // Check if there is already a waiting worker
           if (reg.waiting) {
@@ -235,10 +236,15 @@ export default function App() {
   // Periodically check for updates if service worker is active
   useEffect(() => {
     if (swReg) {
-      swReg.update().catch(() => {});
-      const interval = setInterval(() => {
-        swReg.update().catch(() => {});
-      }, 5 * 60 * 1000); // Check every 5 minutes
+      const runUpdate = () => {
+        swReg.update()
+          .then(() => {
+            localStorage.setItem('pokeclasseur_last_update_check', new Date().toISOString());
+          })
+          .catch(() => {});
+      };
+      runUpdate();
+      const interval = setInterval(runUpdate, 5 * 60 * 1000); // Check every 5 minutes
       return () => clearInterval(interval);
     }
   }, [swReg]);
@@ -304,6 +310,8 @@ export default function App() {
                 setThemeKey={setTk}
                 themes={THEMES}
                 onReset={handleReset}
+                swReg={swReg}
+                showUpdate={showUpdate}
               />
             )}
           </div>
