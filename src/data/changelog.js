@@ -1,6 +1,16 @@
 // ── Changelog PokéClasseur ─────────────────────────────────────────────────
 export const CHANGELOG = [
   {
+    version: '2.0.7',
+    date: '2026-05-27',
+    title: 'Placeholders & Correctifs d\'Images',
+    items: [
+      '🖼️ Correction complète des avatars de dresseurs (Conseil 4, Rivaux et Champions) sur Pokémon Showdown (0% d\'erreurs 404)',
+      '⭐ Intégration de placeholders SVG pour les badges manquants ou en erreur',
+      '👤 Intégration de placeholders silhouettes pour les dresseurs non chargés',
+    ],
+  },
+  {
     version: '2.0.6',
     date: '2026-05-27',
     title: 'Objectifs multi-régions & Tableau Pokédex',

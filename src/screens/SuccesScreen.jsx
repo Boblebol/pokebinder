@@ -3,7 +3,7 @@ import PkImg from '../components/PkImg.jsx';
 import { BADGES } from '../data/badges.js';
 import { ACHIEVEMENTS, PKM, STATS, TYPE_COLORS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
-import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP } from '../utils/assets.js';
+import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP, TRAINER_PLACEHOLDER, BADGE_PLACEHOLDER } from '../utils/assets.js';
 
 // ── Config régions ─────────────────────────────────────────────────────────
 const REGION_LABELS = {
@@ -80,6 +80,9 @@ function BadgeDetail({ badge, col, theme, onBack }) {
             <img 
               src={trainerImgUrl} 
               alt={badge.name} 
+              onError={(e) => {
+                e.target.src = TRAINER_PLACEHOLDER;
+              }}
               style={{
                 width: '100%',
                 height: '100%',
@@ -125,6 +128,9 @@ function BadgeDetail({ badge, col, theme, onBack }) {
             <img 
               src={badgeImgUrl || trainerImgUrl} 
               alt="" 
+              onError={(e) => {
+                e.target.src = TRAINER_PLACEHOLDER;
+              }}
               style={{
                 width: 28,
                 height: 28,
@@ -310,6 +316,9 @@ function BadgeGridCard({ badge, col, onClick }) {
             <img 
               src={trainerImgUrl} 
               alt="" 
+              onError={(e) => {
+                e.target.src = TRAINER_PLACEHOLDER;
+              }}
               style={{
                 width: '100%',
                 height: '100%',
@@ -359,6 +368,9 @@ function BadgeGridCard({ badge, col, onClick }) {
                 <img 
                   src={badgeImgUrl} 
                   alt="" 
+                  onError={(e) => {
+                    e.target.src = BADGE_PLACEHOLDER;
+                  }}
                   style={{
                     width: 12,
                     height: 12,
@@ -500,6 +512,9 @@ function AchievementGridCard({ ach, col }) {
               <img 
                 src={profUrl} 
                 alt="" 
+                onError={(e) => {
+                  e.target.src = TRAINER_PLACEHOLDER;
+                }}
                 style={{
                   width: '100%',
                   height: '100%',

@@ -8,7 +8,7 @@ import SettingsScreen from './screens/SettingsScreen.jsx';
 import ProductTour, { TOUR_STEPS } from './components/ProductTour.jsx';
 import { INITCOL, BCFG, PLIST, BADGES, ACHIEVEMENTS } from './data/index.js';
 import { computeSnap } from './utils/binder.js';
-import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP } from './utils/assets.js';
+import { getBadgeImageUrl, getTrainerAvatarUrl, PROFESSOR_MAP, TRAINER_PLACEHOLDER } from './utils/assets.js';
 
 const THEMES = {
   shadow: {
@@ -498,6 +498,9 @@ export default function App() {
                     <img 
                       src={activeToast.imageUrl} 
                       alt="" 
+                      onError={(e) => {
+                        e.target.src = TRAINER_PLACEHOLDER;
+                      }}
                       style={{
                         width: '100%',
                         height: '100%',
@@ -522,7 +525,14 @@ export default function App() {
                     gap: 6 
                   }}>
                     {activeToast.badgeImageUrl && (
-                      <img src={activeToast.badgeImageUrl} alt="" style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} />
+                      <img 
+                        src={activeToast.badgeImageUrl} 
+                        alt="" 
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                        style={{ width: 16, height: 16, objectFit: 'contain', flexShrink: 0 }} 
+                      />
                     )}
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {activeToast.subtitle}
