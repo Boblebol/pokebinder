@@ -43,6 +43,7 @@ export default function App() {
   const [succesBadgeId, setSuccesBadgeId] = useState(null);
   const [succesCatFilter, setSuccesCatFilter] = useState(null);
   const [succesDexMode, setSuccesDexMode] = useState(null);
+  const [succesRTab, setSuccesRTab] = useState(null);
   const prevUnlocksRef = useRef({ badges: [], achievements: [], isInitialized: false });
 
   // 1. Persistent Collection State
@@ -328,7 +329,8 @@ export default function App() {
                 onClearInitialSelectedBadge={() => setSuccesBadgeId(null)}
                 initialCatFilter={succesCatFilter}
                 initialDexMode={succesDexMode}
-                onClearInitialFilter={() => { setSuccesCatFilter(null); setSuccesDexMode(null); }}
+                initialRTab={succesRTab}
+                onClearInitialFilter={() => { setSuccesCatFilter(null); setSuccesDexMode(null); setSuccesRTab(null); }}
               />
             )}
             {tab === 'binders' && (
@@ -339,9 +341,10 @@ export default function App() {
                 col={col}
                 setCol={setCol}
                 theme={theme}
-                onNavigateToSucces={({ catFilter, dexMode }) => {
+                onNavigateToSucces={({ catFilter, dexMode, rTab }) => {
                   setSuccesCatFilter(catFilter || null);
                   setSuccesDexMode(dexMode || null);
+                  setSuccesRTab(rTab || null);
                   setTab('succes');
                 }}
               />

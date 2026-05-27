@@ -1,6 +1,16 @@
 // ── Changelog PokéClasseur ─────────────────────────────────────────────────
 export const CHANGELOG = [
   {
+    version: '2.0.6',
+    date: '2026-05-27',
+    title: 'Objectifs multi-régions & Tableau Pokédex',
+    items: [
+      '🗺️ Correction des succès et badges régionaux sur le Tableau de bord pour toutes les régions (Johto, Hoenn, etc.)',
+      '🔗 Navigation synchronisée : cliquer sur une carte d\'objectifs du Dashboard ouvre désormais la page Succès sur le bon onglet régional',
+      '📖 Remplacement du sélecteur d\'entrées Pokédex par un tableau vertical propre, listant tous les jeux et descriptions correspondantes en même temps',
+    ],
+  },
+  {
     version: '2.0.5',
     date: '2026-05-27',
     title: 'Navigation & Succès Spéciaux',

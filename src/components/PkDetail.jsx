@@ -527,36 +527,55 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
           {/* Pokédex Entries */}
           <Card>
             <Lbl>Entrées Pokédex</Lbl>
-            <div style={{ display: 'flex', gap: 5, marginBottom: 11, overflowX: 'auto' }}>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 8,
+              overflow: 'hidden',
+              border: '1px solid rgba(255,255,255,.08)'
+            }}>
               {formEntries.map((en, idx) => (
-                <button
+                <div
                   key={idx}
-                  onClick={() => setEi(idx)}
                   style={{
-                    padding: '4px 10px',
-                    borderRadius: 6,
-                    border: 'none',
-                    flexShrink: 0,
-                    background: safeEi === idx ? theme.accent : 'rgba(255,255,255,.09)',
-                    color: safeEi === idx ? '#fff' : 'rgba(255,255,255,.42)',
-                    cursor: 'pointer',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    fontFamily: 'inherit'
+                    display: 'flex',
+                    alignItems: 'stretch',
+                    borderBottom: idx < formEntries.length - 1 ? '1px solid rgba(255,255,255,.08)' : 'none',
+                    background: idx % 2 === 0 ? 'rgba(255,255,255,.02)' : 'rgba(255,255,255,.05)'
                   }}
                 >
-                  {en.g}
-                </button>
+                  <div style={{
+                    width: 95,
+                    padding: '12px 10px',
+                    background: 'rgba(255,255,255,.02)',
+                    borderRight: '1px solid rgba(255,255,255,.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <span style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: theme.accent,
+                      textAlign: 'center',
+                      lineHeight: 1.3
+                    }}>
+                      {en.g}
+                    </span>
+                  </div>
+                  <div style={{
+                    flex: 1,
+                    padding: '12px 14px',
+                    fontSize: 12.5,
+                    lineHeight: 1.5,
+                    color: 'rgba(255,255,255,.75)'
+                  }}>
+                    {en.t}
+                  </div>
+                </div>
               ))}
             </div>
-            <p style={{
-              color: 'rgba(255,255,255,.62)',
-              fontSize: 13,
-              lineHeight: 1.65,
-              margin: 0
-            }}>
-              {formEntries[safeEi]?.t}
-            </p>
           </Card>
 
           {/* Related Trainers – only shown when fully unlocked */}

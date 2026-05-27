@@ -27,8 +27,23 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
     return ids.length > 0 && ids.every(id => col[id] === 'rangé' || col[id] === 'en main');
   }, [col]);
 
-  const mapAchRegionToBadgeRegion = (achRegion) => {
-    switch (achRegion) {
+  const getBadgeRegionsForDashboardRegion = (dashRegion) => {
+    switch (dashRegion) {
+      case 'kanto': return ['kanto'];
+      case 'johto': return ['gs'];
+      case 'hoenn': return ['rs'];
+      case 'sinnoh': return ['dp'];
+      case 'unys': return ['bw', 'b2w2'];
+      case 'kalos': return ['xy'];
+      case 'alola': return ['sm'];
+      case 'galar': return ['swsh'];
+      case 'paldea': return ['sv'];
+      default: return [];
+    }
+  };
+
+  const getBadgeRegionForDashboardRegion = (dashRegion) => {
+    switch (dashRegion) {
       case 'kanto': return 'kanto';
       case 'johto': return 'gs';
       case 'hoenn': return 'rs';
@@ -38,8 +53,16 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
       case 'alola': return 'sm';
       case 'galar': return 'swsh';
       case 'paldea': return 'sv';
-      default: return achRegion;
+      default: return 'global';
     }
+  };
+
+  const isAchInDashboardRegion = (ach, dashRegion) => {
+    if (dashRegion === 'global') return true;
+    if (!ach.region) return false;
+    if (ach.region === dashRegion) return true;
+    if (dashRegion === 'unys' && ach.region === 'b2w2') return true;
+    return false;
   };
 
   const normalizedBadges = useMemo(() => {
@@ -60,16 +83,17 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
     const t = base.length;
     
     // Badges calculation
+    const badgeRegions = getBadgeRegionsForDashboardRegion(rTab);
     const regionBadges = rTab === 'global'
       ? normalizedBadges
-      : normalizedBadges.filter(b => b.region === rTab);
+      : normalizedBadges.filter(b => badgeRegions.includes(b.region));
     const ub = regionBadges.filter(isBadgeUnlocked).length;
     const tb = regionBadges.length;
 
     // Achievements calculation
     const regionAchs = rTab === 'global'
       ? ACHIEVEMENTS
-      : ACHIEVEMENTS.filter(ach => ach.region && mapAchRegionToBadgeRegion(ach.region) === rTab);
+      : ACHIEVEMENTS.filter(ach => isAchInDashboardRegion(ach, rTab));
 
     const getAchCat = (ach) => {
       if (ach.type === 'starters') return 'starters';
@@ -282,7 +306,11 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
               {/* Badges card - clickable */}
               {s.tb > 0 && (
                 <div
-                  onClick={() => onNavigateToSucces && onNavigateToSucces({ catFilter: 'all', dexMode: 'regional' })}
+                  onClick={() => onNavigateToSucces && onNavigateToSucces({
+                    catFilter: 'all',
+                    dexMode: 'regional',
+                    rTab: rTab === 'global' ? 'tout' : getBadgeRegionForDashboardRegion(rTab)
+                  })}
                   style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: onNavigateToSucces ? 'pointer' : 'default', borderRadius: 8, padding: '4px 2px', transition: 'background 0.15s' }}
                   onPointerDown={e => e.currentTarget.style.background = 'rgba(255,255,255,.04)'}
                   onPointerUp={e => e.currentTarget.style.background = 'transparent'}
@@ -342,7 +370,13 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
                 return (
                   <div
                     key={cat.key}
-                    onClick={() => onNavigateToSucces && onNavigateToSucces({ catFilter: targetCatFilter, dexMode: targetDexMode })}
+                    onClick={() => onNavigateToSucces && onNavigateToSucces({
+                      catFilter: targetCatFilter,
+                      dexMode: targetDexMode,
+                      rTab: rTab === 'global' ?
+                        ((cat.key === 'meta' || cat.key === 'stade' || cat.key === 'special') ? 'global' : 'tout') :
+                        getBadgeRegionForDashboardRegion(rTab)
+                    })}
                     style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 4, cursor: onNavigateToSucces ? 'pointer' : 'default', borderRadius: 8, padding: '4px 2px', transition: 'background 0.15s' }}
                     onPointerDown={e => e.currentTarget.style.background = 'rgba(255,255,255,.04)'}
                     onPointerUp={e => e.currentTarget.style.background = 'transparent'}

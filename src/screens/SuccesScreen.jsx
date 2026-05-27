@@ -571,7 +571,16 @@ function AchievementGridCard({ ach, col }) {
 }
 
 // ── Écran principal ────────────────────────────────────────────────────────
-export default function SuccesScreen({ col, theme, initialSelectedBadgeId, onClearInitialSelectedBadge, initialCatFilter, initialDexMode }) {
+export default function SuccesScreen({
+  col,
+  theme,
+  initialSelectedBadgeId,
+  onClearInitialSelectedBadge,
+  initialCatFilter,
+  initialDexMode,
+  initialRTab,
+  onClearInitialFilter
+}) {
   const [sel, setSel] = useState(null);
   const [dexMode, setDexMode] = useState(initialDexMode || 'regional');
   const [catFilter, setCatFilter] = useState(initialCatFilter || 'all');
@@ -590,6 +599,12 @@ export default function SuccesScreen({ col, theme, initialSelectedBadgeId, onCle
       }
     }
   }, [initialSelectedBadgeId, onClearInitialSelectedBadge]);
+
+  useEffect(() => {
+    if (onClearInitialFilter) {
+      onClearInitialFilter();
+    }
+  }, [onClearInitialFilter]);
 
   // Normalisation des badges (Albert/Falkner johto -> gs)
   const normalizedBadges = useMemo(() => {
@@ -614,7 +629,7 @@ export default function SuccesScreen({ col, theme, initialSelectedBadgeId, onCle
     { id: 'global', l: '🏆 Global', type: 'global' },
   ], [regions]);
 
-  const [rTab, setRTab] = useState(ALL_TABS[0]?.id || 'kanto');
+  const [rTab, setRTab] = useState(initialRTab || 'kanto');
 
   const isUnlocked = useCallback(badge => {
     const enc = badge.encounters[0];
