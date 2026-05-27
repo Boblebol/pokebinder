@@ -281,7 +281,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,.45)' }}>Version installée</span>
               <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: "'Press Start 2P', monospace" }}>
-                v2.0.4
+                v{CHANGELOG[0]?.version || '2.0.5'}
               </span>
             </div>
             
