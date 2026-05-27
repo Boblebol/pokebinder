@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { hexToRgba } from '../utils/color.js';
+import { CHANGELOG } from '../data/changelog.js';
 
 export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThemeKey, themes, onReset, swReg, showUpdate, onReplayTour }) {
   const [localCfg, setLocalCfg] = useState(() => ({ ...bcfg }));
@@ -9,6 +10,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
   const [lastCheck, setLastCheck] = useState(() => localStorage.getItem('pokeclasseur_last_update_check'));
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   useEffect(() => {
     const checkIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -359,6 +361,67 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
               {checking ? '🔄 Vérification...' : '🔍 Rechercher une mise à jour'}
             </button>
           )}
+
+          {/* Changelog collapsible */}
+          <div style={{ marginTop: 10 }}>
+            <button
+              onClick={() => setShowChangelog(v => !v)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '6px 0',
+                fontFamily: 'inherit',
+              }}
+            >
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,.4)', fontWeight: 600 }}>Nouveautés &amp; Changelog</span>
+              <span style={{
+                fontSize: 14,
+                color: 'rgba(255,255,255,.25)',
+                transition: 'transform 0.2s',
+                display: 'inline-block',
+                transform: showChangelog ? 'rotate(180deg)' : 'rotate(0deg)'
+              }}>&#8964;</span>
+            </button>
+
+            {showChangelog && (
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {CHANGELOG.map((entry, ei) => (
+                  <div key={entry.version} style={{
+                    borderRadius: 8,
+                    background: ei === 0 ? hexToRgba(theme.accent, 0.06) : 'rgba(255,255,255,.03)',
+                    border: `1px solid ${ei === 0 ? hexToRgba(theme.accent, 0.22) : 'rgba(255,255,255,.07)'}`,
+                    padding: '10px 12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                      <span style={{
+                        fontFamily: "'Press Start 2P', monospace",
+                        fontSize: 8,
+                        color: ei === 0 ? theme.accent : 'rgba(255,255,255,.4)'
+                      }}>v{entry.version}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: ei === 0 ? '#fff' : 'rgba(255,255,255,.55)' }}>
+                        {entry.title}
+                      </span>
+                      <span style={{ marginLeft: 'auto', fontSize: 9, color: 'rgba(255,255,255,.2)' }}>
+                        {entry.date}
+                      </span>
+                    </div>
+                    <ul style={{ margin: 0, paddingLeft: 14, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {entry.items.map((item, ii) => (
+                        <li key={ii} style={{ fontSize: 10, color: 'rgba(255,255,255,.42)', lineHeight: 1.5 }}>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* iOS Installation Panel */}
