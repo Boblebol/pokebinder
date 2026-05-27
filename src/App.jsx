@@ -70,7 +70,12 @@ export default function App() {
     const cached = localStorage.getItem('pokeclasseur_bcfg');
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        // Migration: force pagesPerBinder to at least 11 (Kanto/Unys overflow fix)
+        if ((parsed.pagesPerBinder || 0) < 11) {
+          parsed.pagesPerBinder = 11;
+        }
+        return parsed;
       } catch (err) {
         console.error('Error parsing config from localStorage', err);
       }

@@ -45,7 +45,7 @@ POKEMON_RAW.forEach(([id]) => {
 export const BCFG = {
   gridRows: 3,
   gridCols: 3,
-  pagesPerBinder: 10,
+  pagesPerBinder: 11,
   mode: 'by-region',
   familyRule: true
 };
