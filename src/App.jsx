@@ -41,6 +41,8 @@ export default function App() {
   // Achievement/Badge Unlock Toast States
   const [activeToast, setActiveToast] = useState(null);
   const [succesBadgeId, setSuccesBadgeId] = useState(null);
+  const [succesCatFilter, setSuccesCatFilter] = useState(null);
+  const [succesDexMode, setSuccesDexMode] = useState(null);
   const prevUnlocksRef = useRef({ badges: [], achievements: [], isInitialized: false });
 
   // 1. Persistent Collection State
@@ -324,13 +326,25 @@ export default function App() {
                 theme={theme}
                 initialSelectedBadgeId={succesBadgeId}
                 onClearInitialSelectedBadge={() => setSuccesBadgeId(null)}
+                initialCatFilter={succesCatFilter}
+                initialDexMode={succesDexMode}
+                onClearInitialFilter={() => { setSuccesCatFilter(null); setSuccesDexMode(null); }}
               />
             )}
             {tab === 'binders' && (
               <BindersScreen col={col} setCol={setCol} bcfg={bcfg} theme={theme} getLoc={getLoc} />
             )}
             {tab === 'dashboard' && (
-              <DashboardScreen col={col} setCol={setCol} theme={theme} />
+              <DashboardScreen
+                col={col}
+                setCol={setCol}
+                theme={theme}
+                onNavigateToSucces={({ catFilter, dexMode }) => {
+                  setSuccesCatFilter(catFilter || null);
+                  setSuccesDexMode(dexMode || null);
+                  setTab('succes');
+                }}
+              />
             )}
             {tab === 'settings' && (
               <SettingsScreen

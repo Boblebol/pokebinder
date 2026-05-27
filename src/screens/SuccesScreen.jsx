@@ -436,21 +436,22 @@ const getAchCategory = (ach) => {
     case 'special':
       if (ach.id === 'grand-maitre') return 'maitre ligue';
       if (ach.id === 'dresseur-ultime') return 'pokedex';
-      return 'autre';
+      return 'special';
     default:
       return 'autre';
   }
 };
 
 const CATEGORY_FILTERS = [
-  { k: 'all',          l: 'Tout',          c: '#ffffff' },
-  { k: 'starter',      l: '🌱 Starters',   c: '#4ade80' },
-  { k: 'arene',        l: '🏅 Arènes',     c: '#38bdf8' },
-  { k: 'conseil 4',    l: '⚔️ Conseil 4',  c: '#a78bfa' },
-  { k: 'maitre ligue', l: '👑 Ligue/Maître',c: '#fbbf24' },
-  { k: 'prof',         l: '🎓 Professeur', c: '#f472b6' },
-  { k: 'pokedex',      l: '📖 Pokédex',    c: '#fb923c' },
+  { k: 'all',          l: 'Tout',           c: '#ffffff' },
+  { k: 'starter',      l: '🌱 Starters',    c: '#4ade80' },
+  { k: 'arene',        l: '🏅 Arènes',      c: '#38bdf8' },
+  { k: 'conseil 4',    l: '⚔️ Conseil 4',   c: '#a78bfa' },
+  { k: 'maitre ligue', l: '👑 Ligue/Maître', c: '#fbbf24' },
+  { k: 'prof',         l: '🎓 Professeur',  c: '#f472b6' },
+  { k: 'pokedex',      l: '📖 Pokédex',     c: '#fb923c' },
   { k: 'maitrise',     l: '🥋 Maîtrises',   c: '#e9d5ff' },
+  { k: 'special',      l: '🌟 Spéciaux',    c: '#a78bfa' },
 ];
 
 
@@ -570,10 +571,10 @@ function AchievementGridCard({ ach, col }) {
 }
 
 // ── Écran principal ────────────────────────────────────────────────────────
-export default function SuccesScreen({ col, theme, initialSelectedBadgeId, onClearInitialSelectedBadge }) {
+export default function SuccesScreen({ col, theme, initialSelectedBadgeId, onClearInitialSelectedBadge, initialCatFilter, initialDexMode }) {
   const [sel, setSel] = useState(null);
-  const [dexMode, setDexMode] = useState('regional');
-  const [catFilter, setCatFilter] = useState('all');
+  const [dexMode, setDexMode] = useState(initialDexMode || 'regional');
+  const [catFilter, setCatFilter] = useState(initialCatFilter || 'all');
 
   // Auto-open badge details from toast notification
   useEffect(() => {

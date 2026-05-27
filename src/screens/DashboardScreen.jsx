@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { REGIONS, PLIST, BADGES, ACHIEVEMENTS } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
-export default function DashboardScreen({ col, setCol, theme }) {
+export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces }) {
   const [rTab, setRTab] = useState('global');
   
   const RTABS = [
@@ -279,9 +279,15 @@ export default function DashboardScreen({ col, setCol, theme }) {
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {/* Badges card */}
+              {/* Badges card - clickable */}
               {s.tb > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div
+                  onClick={() => onNavigateToSucces && onNavigateToSucces({ catFilter: 'all', dexMode: 'regional' })}
+                  style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: onNavigateToSucces ? 'pointer' : 'default', borderRadius: 8, padding: '4px 2px', transition: 'background 0.15s' }}
+                  onPointerDown={e => e.currentTarget.style.background = 'rgba(255,255,255,.04)'}
+                  onPointerUp={e => e.currentTarget.style.background = 'transparent'}
+                  onPointerLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
                   <span style={{ fontSize: 32 }}>🏅</span>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
@@ -304,6 +310,7 @@ export default function DashboardScreen({ col, setCol, theme }) {
                       }} />
                     </div>
                   </div>
+                  {onNavigateToSucces && <span style={{ fontSize: 12, color: 'rgba(255,255,255,.2)', flexShrink: 0 }}>›</span>}
                 </div>
               )}
 
@@ -318,8 +325,29 @@ export default function DashboardScreen({ col, setCol, theme }) {
 
                 const pct = cat.total ? Math.round((cat.cur / cat.total) * 100) : 0;
 
+                // Map Dashboard category key to SuccesScreen catFilter
+                const catFilterMap = {
+                  starters: 'starter',
+                  gyms:     'arene',
+                  prof:     'prof',
+                  maitrise: 'maitrise',
+                  meta:     'pokedex',
+                  stade:    'pokedex',
+                  special:  'special',
+                };
+                const targetCatFilter = catFilterMap[cat.key] || 'all';
+                // meta/stade are global, use national mode so filters work correctly
+                const targetDexMode = (cat.key === 'meta' || cat.key === 'stade' || cat.key === 'special') ? 'national' : 'regional';
+
                 return (
-                  <div key={cat.key} style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 4 }}>
+                  <div
+                    key={cat.key}
+                    onClick={() => onNavigateToSucces && onNavigateToSucces({ catFilter: targetCatFilter, dexMode: targetDexMode })}
+                    style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 4, cursor: onNavigateToSucces ? 'pointer' : 'default', borderRadius: 8, padding: '4px 2px', transition: 'background 0.15s' }}
+                    onPointerDown={e => e.currentTarget.style.background = 'rgba(255,255,255,.04)'}
+                    onPointerUp={e => e.currentTarget.style.background = 'transparent'}
+                    onPointerLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
                     <span style={{ fontSize: 32 }}>{cat.icon}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
@@ -342,6 +370,7 @@ export default function DashboardScreen({ col, setCol, theme }) {
                         }} />
                       </div>
                     </div>
+                    {onNavigateToSucces && <span style={{ fontSize: 12, color: 'rgba(255,255,255,.2)', flexShrink: 0 }}>›</span>}
                   </div>
                 );
               })}

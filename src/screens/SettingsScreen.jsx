@@ -198,6 +198,20 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
               }} />
             </div>
           </div>
+          {localCfg.familyRule && (
+            <div style={{
+              marginTop: 10,
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'rgba(251, 191, 36, 0.08)',
+              border: '1px solid rgba(251, 191, 36, 0.25)',
+              fontSize: 10,
+              color: 'rgba(251, 191, 36, 0.85)',
+              lineHeight: 1.5
+            }}>
+              ⚠️ Avec la règle famille, <strong>Kanto</strong> et <strong>Unys</strong> nécessitent <strong>11 pages</strong> de classeur (au lieu de 10) pour loger tous leurs Pokémon sans les couper.
+            </div>
+          )}
         </div>
 
         {/* Theme select (added for in-app configuration) */}
