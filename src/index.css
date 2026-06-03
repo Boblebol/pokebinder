@@ -275,3 +275,35 @@ input[type=range] {
     opacity: 1;
   }
 }
+
+@keyframes spotlightPulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(255, 255, 255, 0.05);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 12px 3px rgba(255, 255, 255, 0.08);
+  }
+}
+
+@keyframes tourBubbleEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tourDotPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+

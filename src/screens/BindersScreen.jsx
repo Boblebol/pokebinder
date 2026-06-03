@@ -94,7 +94,11 @@ export default function BindersScreen({ col, setCol, bcfg, theme, getLoc }) {
       {/* Pages list */}
       <div style={{ flex: 1, overflow: 'auto', padding: '4px 14px 24px' }}>
         {pages.map(pg => (
-          <div key={pg.n} style={{ marginBottom: 16 }}>
+          <div 
+            key={pg.n} 
+            data-tour={pg.n === 1 ? "binder-page" : undefined}
+            style={{ marginBottom: 16 }}
+          >
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>
               Page {pg.n}
             </div>

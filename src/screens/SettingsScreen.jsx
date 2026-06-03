@@ -123,7 +123,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
           <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>
             Format de page
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div data-tour="page-format" style={{ display: 'flex', gap: 8 }}>
             {[[3, 3], [3, 4], [4, 4]].map(([r, c]) => {
               const on = localCfg.gridRows === r && localCfg.gridCols === c;
               return (

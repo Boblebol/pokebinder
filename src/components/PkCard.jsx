@@ -4,13 +4,14 @@ import TBadge from './TBadge.jsx';
 import { TYPE_COLORS, STATUS_CONFIG } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
-export default function PkCard({ p, status, onTap, onStatusCycle }) {
+export default function PkCard({ p, status, onTap, onStatusCycle, isFirst }) {
   const sc = STATUS_CONFIG[status] || STATUS_CONFIG[null];
   const tc = TYPE_COLORS[p.types[0]] || '#888888';
 
   return (
     <div
       id={`pk-card-${p.id}`}
+      data-tour={isFirst ? 'first-card' : undefined}
       onClick={() => onTap(p)}
       style={{
         background: 'rgba(255, 255, 255, 0.05)',
@@ -48,6 +49,7 @@ export default function PkCard({ p, status, onTap, onStatusCycle }) {
             #{String(p.id).padStart(3, '0')}
           </div>
           <button
+            data-tour={isFirst ? 'status-btn' : undefined}
             onClick={(ev) => {
               ev.stopPropagation();
               if (onStatusCycle) {

@@ -415,6 +415,7 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
         {/* Export / Import Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button
+            data-tour="export-btn"
             onClick={handleExport}
             style={{
               width: '100%',

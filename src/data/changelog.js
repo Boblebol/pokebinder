@@ -1,6 +1,18 @@
 // ── Changelog PokéClasseur ─────────────────────────────────────────────────
 export const CHANGELOG = [
   {
+    version: '2.1.0',
+    date: '2026-06-03',
+    title: 'Tutoriel Interactif avec Spotlights & Focus',
+    items: [
+      '🎯 Nouveau système de spotlight dynamique qui met en évidence les éléments réels de l\'application',
+      '💬 Bulle d\'information contextuelle avec positionnement intelligent (au-dessus, en-dessous ou centrée)',
+      '👆 Zone spotlight interactive permettant de cliquer directement sur les éléments (ex: cocher les cartes du classeur pendant le guide)',
+      '📜 Défilement automatique intelligent (scrollIntoView) pour amener les éléments hors-champ (comme le bouton d\'export) au centre de l\'écran avant de les pointer',
+      '🔄 Recalcul de position en temps réel lors du défilement ou du redimensionnement de l\'écran',
+    ],
+  },
+  {
     version: '2.0.7',
     date: '2026-05-27',
     title: 'Placeholders & Correctifs d\'Images',

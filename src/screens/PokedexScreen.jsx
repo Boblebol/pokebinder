@@ -214,19 +214,20 @@ export default function PokedexScreen({ col, setCol, theme, getLoc }) {
         padding: '4px 14px 14px'
       }}>
         {/* Grid Child */}
-        <div style={{
+        <div data-tour="pokedex-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 8,
           alignContent: 'start'
         }}>
-          {filtered.map(p => (
+          {filtered.map((p, idx) => (
             <PkCard
               key={p.id}
               p={p}
               status={col[p.id]}
               onTap={setSel}
               onStatusCycle={(next) => setCol(c => ({ ...c, [p.id]: next }))}
+              isFirst={idx === 0}
             />
           ))}
         </div>

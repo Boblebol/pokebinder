@@ -11,7 +11,7 @@ export default function TabBar({ tab, setTab, accent }) {
   ];
 
   return (
-    <div style={{
+    <div data-tour="tabbar" style={{
       height: 82,
       background: 'rgba(6, 6, 12, .9)',
       backdropFilter: 'blur(28px)',
