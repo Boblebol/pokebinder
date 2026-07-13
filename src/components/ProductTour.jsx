@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export const TOUR_STEPS = [
   {
@@ -114,56 +114,55 @@ export default function ProductTour({ step, onNext, onPrev, onClose, theme }) {
   const [animKey, setAnimKey] = useState(0);
   const tooltipRef = useRef(null);
 
-  if (!current) return null;
-
-  const isLast = step === TOUR_STEPS.length - 1;
-  const isFirst = step === 0;
-  const hasTarget = !!current.target;
-  const pad = current.padding || 8;
+  const target = current?.target || null;
+  const isTabbarStep = step === 5 || step === 6 || step === 7;
 
   // Measure target element position
   useEffect(() => {
-    if (!current.target) {
+    const timers = [];
+
+    if (!target) {
       setRect(null);
     } else {
-      const timer = setTimeout(() => {
-        const el = document.querySelector(current.target);
+      timers.push(setTimeout(() => {
+        const el = document.querySelector(target);
         if (el) {
           el.scrollIntoView({ behavior: 'auto', block: 'nearest' });
           setRect(getRelativeRect(el));
         } else {
           setRect(null);
         }
-      }, 180);
+      }, 180));
     }
 
     // Measure TabBar if needed (steps 6, 7, 8 -> step indices 5, 6, 7)
-    if (step === 5 || step === 6 || step === 7) {
-      const timer = setTimeout(() => {
+    if (isTabbarStep) {
+      timers.push(setTimeout(() => {
         const el = document.querySelector('[data-tour="tabbar"]');
         if (el) {
           setTabbarRect(getRelativeRect(el));
         } else {
           setTabbarRect(null);
         }
-      }, 180);
+      }, 180));
     } else {
       setTabbarRect(null);
     }
 
     setAnimKey(k => k + 1);
-  }, [step, current.target]);
+    return () => timers.forEach(clearTimeout);
+  }, [step, target, isTabbarStep]);
 
   // Recalculate on resize and scroll
   useEffect(() => {
     const handleUpdate = () => {
-      if (current.target) {
-        const el = document.querySelector(current.target);
+      if (target) {
+        const el = document.querySelector(target);
         if (el) {
           setRect(getRelativeRect(el));
         }
       }
-      if (step === 5 || step === 6 || step === 7) {
+      if (isTabbarStep) {
         const el = document.querySelector('[data-tour="tabbar"]');
         if (el) {
           setTabbarRect(getRelativeRect(el));
@@ -177,7 +176,14 @@ export default function ProductTour({ step, onNext, onPrev, onClose, theme }) {
       window.removeEventListener('resize', handleUpdate);
       window.removeEventListener('scroll', handleUpdate, { capture: true });
     };
-  }, [current.target, step]);
+  }, [target, isTabbarStep]);
+
+  if (!current) return null;
+
+  const isLast = step === TOUR_STEPS.length - 1;
+  const isFirst = step === 0;
+  const hasTarget = !!target;
+  const pad = current.padding || 8;
 
   // Compute spotlight cutout styles
   const spotlightStyle = rect ? {

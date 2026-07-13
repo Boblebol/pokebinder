@@ -1,12 +1,11 @@
 import React from 'react';
 import PkImg from './PkImg.jsx';
 import TBadge from './TBadge.jsx';
-import { TYPE_COLORS, STATUS_CONFIG } from '../data/index.js';
+import { STATUS_CONFIG } from '../data/index.js';
 import { hexToRgba } from '../utils/color.js';
 
 export default function PkCard({ p, status, onTap, onStatusCycle, isFirst }) {
   const sc = STATUS_CONFIG[status] || STATUS_CONFIG[null];
-  const tc = TYPE_COLORS[p.types[0]] || '#888888';
 
   return (
     <div

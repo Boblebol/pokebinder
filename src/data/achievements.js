@@ -9,7 +9,7 @@ const countOwned = (col) => {
 
 // Count how many Pokémon of a specific type are owned
 const countOwnedType = (col, type) => {
-  return POKEMON_RAW.filter(([id, name, t1, t2]) => {
+  return POKEMON_RAW.filter(([id, _name, t1, t2]) => {
     const isOwned = col[id] === 'rangé' || col[id] === 'en main';
     return isOwned && (t1 === type || t2 === type);
   }).length;
@@ -138,7 +138,7 @@ export const ACHIEVEMENTS = [
     check: (col) => {
       const types = ['grass', 'fire', 'water', 'bug', 'normal', 'poison', 'electric', 'ground', 'fairy', 'fighting', 'psychic', 'rock', 'ghost', 'ice', 'dragon', 'steel', 'dark', 'flying'];
       const ownedTypes = new Set();
-      POKEMON_RAW.forEach(([id, name, t1, t2]) => {
+      POKEMON_RAW.forEach(([id, _name, t1, t2]) => {
         if (col[id] === 'rangé' || col[id] === 'en main') {
           if (t1) ownedTypes.add(t1);
           if (t2) ownedTypes.add(t2);
@@ -149,7 +149,7 @@ export const ACHIEVEMENTS = [
     progress: (col) => {
       const types = ['grass', 'fire', 'water', 'bug', 'normal', 'poison', 'electric', 'ground', 'fairy', 'fighting', 'psychic', 'rock', 'ghost', 'ice', 'dragon', 'steel', 'dark', 'flying'];
       const ownedTypes = new Set();
-      POKEMON_RAW.forEach(([id, name, t1, t2]) => {
+      POKEMON_RAW.forEach(([id, _name, t1, t2]) => {
         if (col[id] === 'rangé' || col[id] === 'en main') {
           if (t1) ownedTypes.add(t1);
           if (t2) ownedTypes.add(t2);

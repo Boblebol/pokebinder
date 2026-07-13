@@ -173,7 +173,7 @@ export default function DashboardScreen({ col, setCol, theme, onNavigateToSucces
         } else {
           alert('Format de fichier invalide (attribut "collection" manquant).');
         }
-      } catch (err) {
+      } catch (_err) {
         alert('Erreur lors de la lecture du fichier JSON.');
       }
     };

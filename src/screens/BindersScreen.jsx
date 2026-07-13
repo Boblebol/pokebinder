@@ -27,7 +27,7 @@ export default function BindersScreen({ col, setCol, bcfg, theme, getLoc }) {
       }
     });
     return Object.keys(pm).map(Number).sort((a, b) => a - b).map(n => ({ n, ...pm[n] }));
-  }, [col, bcfg, ai, getLoc, rt.ci, cfg.gridRows, cfg.gridCols]);
+  }, [col, getLoc, rt.ci, cfg.gridRows, cfg.gridCols]);
 
   const sc = s => s === 'rangé' ? '#22c55e' : s === 'en main' ? '#f59e0b' : 'rgba(255,255,255,.06)';
   const cap = pages.reduce((a, pg) => a + pg.R.filter(c => c && c.status).length + pg.V.filter(c => c && c.status).length, 0);

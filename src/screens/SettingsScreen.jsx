@@ -41,7 +41,7 @@ export default function SettingsScreen({ bcfg, setBcfg, theme, themeKey, setThem
       const hours = String(d.getHours()).padStart(2, '0');
       const minutes = String(d.getMinutes()).padStart(2, '0');
       return `${day}/${month}/${year} à ${hours}:${minutes}`;
-    } catch (e) {
+    } catch (_e) {
       return 'Jamais';
     }
   };

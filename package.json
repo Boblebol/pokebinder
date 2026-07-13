@@ -1,11 +1,36 @@
 {
   "name": "pokebinder",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.2.0",
+  "description": "PWA mobile-first pour suivre une collection Pokémon et préparer des classeurs physiques.",
+  "license": "MIT",
+  "author": "Boblebol",
   "type": "module",
+  "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0",
+    "pnpm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Boblebol/pokebinder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Boblebol/pokebinder/issues"
+  },
+  "homepage": "https://github.com/Boblebol/pokebinder#readme",
+  "keywords": [
+    "pokemon",
+    "collection",
+    "pokedex",
+    "pwa",
+    "react",
+    "vite"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "check": "pnpm lint && pnpm build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

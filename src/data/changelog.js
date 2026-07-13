@@ -1,6 +1,18 @@
 // ── Changelog PokéClasseur ─────────────────────────────────────────────────
 export const CHANGELOG = [
   {
+    version: '2.2.0',
+    date: '2026-07-13',
+    title: 'Préparation Open Source & CI',
+    items: [
+      '📚 README, guide de contribution, sécurité, code de conduite et changelog public remis au propre',
+      '✅ Ajout d’une CI GitHub Actions qui vérifie le lint et le build sur chaque pull request',
+      '🤖 Ajout de Dependabot pour suivre les dépendances npm et GitHub Actions',
+      '🧹 Stabilisation d’ESLint, nettoyage des fichiers ignorés et metadata projet complétées',
+      '🏷️ Historique de versions aligné avec des tags Git manquants pour faciliter les releases',
+    ],
+  },
+  {
     version: '2.1.0',
     date: '2026-06-03',
     title: 'Tutoriel Interactif avec Spotlights & Focus',

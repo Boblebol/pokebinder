@@ -47,17 +47,11 @@ function getFormDescription(p, form) {
 }
 
 export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigate, theme, getLoc }) {
-  const [ei, setEi] = useState(0);
   const [selectedForm, setSelectedForm] = useState(null);
 
   useEffect(() => {
-    setEi(0);
     setSelectedForm(null);
   }, [p.id]);
-
-  useEffect(() => {
-    setEi(0);
-  }, [selectedForm]);
 
   const loc = getLoc(p.id);
   const chain = p.evoChain || [p.id];
@@ -86,8 +80,6 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
     }
     return baseEntries.length ? baseEntries : [{ g: 'Pokédex', t: 'Aucune donnée.' }];
   }, [p, selectedForm]);
-
-  const safeEi = Math.min(ei, formEntries.length - 1);
 
   const cycleStatus = () => {
     const next = !status ? 'en main' : status === 'en main' ? 'rangé' : null;
@@ -343,7 +335,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
               }}>
                 {/* Base Form button */}
                 <button
-                  onClick={() => { setSelectedForm(null); setEi(0); }}
+                  onClick={() => { setSelectedForm(null); }}
                   style={{
                     flexShrink: 0,
                     width: 90,
@@ -378,7 +370,7 @@ export default function PkDetail({ p, status, col = {}, onBack, onSet, onNavigat
                   return (
                     <button
                       key={form.poke_id}
-                      onClick={() => { setSelectedForm(form); setEi(0); }}
+                      onClick={() => { setSelectedForm(form); }}
                       style={{
                         flexShrink: 0,
                         width: 90,

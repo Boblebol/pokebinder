@@ -74,7 +74,6 @@ const BADGE_IMAGE_MAP = {
   'badge feu': 'https://archives.bulbagarden.net/media/upload/a/ab/Fire_Badge.png',
   'badge fee': 'https://archives.bulbagarden.net/media/upload/0/00/Fairy_Badge_VIII.png',
   'badge roche': 'https://archives.bulbagarden.net/media/upload/0/06/Rock_Badge.png',
-  'badge glace': 'https://archives.bulbagarden.net/media/upload/1/1a/Ice_Badge.png',
   'badge tenebres': 'https://archives.bulbagarden.net/media/upload/f/fa/Dark_Badge.png',
   'badge dragon': 'https://archives.bulbagarden.net/media/upload/3/36/Dragon_Badge.png',
 
@@ -398,5 +397,4 @@ export function getTrainerAvatarUrl(trainerName, id = null) {
 export const TRAINER_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='%234b5563'><circle cx='40' cy='30' r='18'/><path d='M16 68c0-15 12-24 24-24s24 9 24 24H16z'/></svg>";
 
 export const BADGE_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d97706'><path d='M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6-6.3 4.6 2.3-7.4-6-4.6h7.6z'/></svg>";
-
 
